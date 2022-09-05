@@ -1,41 +1,57 @@
 package edu.ufl.cise.plpfa22;
 
-public class Token implements IToken{
+public class Token implements IToken {
+
+	Kind kind;
+	String text;
+	int line;
+	int column;
+
+	public Token(Kind kind, int line, int column) {
+		this.kind = kind;
+		this.line = line;
+		this.column = column;
+	}
 
 	@Override
 	public Kind getKind() {
-		// TODO Auto-generated method stub
-		return null;
+		return kind;
 	}
 
 	@Override
 	public char[] getText() {
-		// TODO Auto-generated method stub
-		return null;
+		return text.toCharArray();
 	}
 
 	@Override
 	public SourceLocation getSourceLocation() {
-		// TODO Auto-generated method stub
-		return null;
+		SourceLocation sl = new SourceLocation(line, column);
+		return sl;
 	}
 
 	@Override
 	public int getIntValue() {
-		// TODO Auto-generated method stub
+		if (kind == Kind.NUM_LIT) {
+			return Integer.parseInt(text);
+		}
 		return 0;
 	}
 
 	@Override
 	public boolean getBooleanValue() {
-		// TODO Auto-generated method stub
+		if (kind == Kind.BOOLEAN_LIT) {
+			return Boolean.parseBoolean(text);
+		}
 		return false;
+
 	}
 
 	@Override
 	public String getStringValue() {
-		// TODO Auto-generated method stub
-		return null;
+		if (kind == Kind.STRING_LIT) {
+			return text.substring(1, text.length() - 1);
+		}
+		return "";
 	}
 
 }
