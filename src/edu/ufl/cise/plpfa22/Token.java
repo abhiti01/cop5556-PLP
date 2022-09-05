@@ -2,12 +2,14 @@ package edu.ufl.cise.plpfa22;
 
 public class Token implements IToken {
 
-	Kind kind;
-	String text;
-	int line;
-	int column;
+	public final Kind kind;
+	public final String text;
+	public final int line;
+	public final int column;
 
-	public Token(Kind kind, int line, int column) {
+	public Token(Kind kind, String text, int line, int column) {
+		super();
+		this.text = text;
 		this.kind = kind;
 		this.line = line;
 		this.column = column;
