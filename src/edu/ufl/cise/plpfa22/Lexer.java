@@ -26,10 +26,13 @@ public class Lexer implements ILexer {
 		IN_FLOAT,
 		IN_NUM,
 		HAVE_EQ,
-		HAVE_MINUS
+		HAVE_MINUS, 
+		IN_STRINGLIT,
+		IN_COMMENT
 	}
 
 	void updateLocation() throws IOException {
+		System.out.println("Char inside ul: "+(char)ch);
 		if (ch == '\n') {
 			currLine = currLine + 1;
 			ch = r.read();
@@ -53,9 +56,11 @@ public class Lexer implements ILexer {
 		int line = 0;
 		int column = 0;
 		Token t = null;
-		StringBuilder st = new StringBuilder();
+		StringBuilder st = null;
 		State state = State.START;
 		while (t == null) {
+			System.out.println("State: "+state);
+			System.out.println("Character "+(char)ch);
 			try {
 				switch (state) {
 					case START: {
@@ -85,8 +90,129 @@ public class Lexer implements ILexer {
 								updateLocation();
 							}
 								break;
+							case 42:{
+								t = new Token(Kind.TIMES,"*",line,column);
+								updateLocation();
+							}
+							break;
+
+							case 34: {
+								state = State.IN_STRINGLIT;
+								st = new StringBuilder();
+								// st.append((char) 34);
+								updateLocation();
+							}
+							break;
+							case 47: {
+								state = State.IN_COMMENT;
+								updateLocation();
+							}
+							break;
+							default:
+							{
+								if (ch>=40 && ch<=90 || ch>=97 && ch<=122 || ch==95 || ch==36){
+									state = State.IN_IDENT;
+									st = new StringBuilder();
+									st.append((char)ch);
+									updateLocation();
+								}
+							}
+						}
+					
+					}
+					break;
+					case IN_STRINGLIT: {
+						System.out.println("Current char:"+(char)ch);
+						System.out.println("In case string lit");
+						if (ch<0 || ch>127) {
+							throw new LexicalException("Invalid character found in string literal");
+
+						}
+						else{
+							if(ch == 34){
+								// st.append((char)34);
+								// String str = st.toString();
+								t = new Token(Kind.STRING_LIT, st.toString(),line,column);
+								state = State.START;
+								updateLocation();
+							}
+							else if(ch == 92){
+								updateLocation();
+								switch(ch) {
+									case 'b':{
+										st.append("\b");
+										updateLocation();
+										break;
+									}
+									case 't': {
+										st.append("\t");
+										updateLocation();
+										break;
+									}
+									case 'n': {
+										st.append("\n");
+										updateLocation();
+										break;
+									}
+									case 'f': {
+										st.append("\f");
+										updateLocation();
+										break;
+									}
+									case 'r': {
+										st.append("\r");
+										updateLocation();
+										break;
+									}
+									case 34: {
+										st.append("\"");
+										updateLocation();
+										break;
+									}
+									case 39: {
+										st.append("\'");
+										updateLocation();
+										break;
+									}
+									case 92: {
+										st.append("\'");
+										updateLocation();
+										break;
+									}
+
+
+									default: {
+										throw new LexicalException("Could not match escape character after backslash");
+									}
+									
+
+								}
+							}
+							else{
+								st.append((char)ch);
+								updateLocation();
+							}
+						}
+						
+					}
+					break;
+					case IN_COMMENT:{
+						if (ch=='\n'||ch=='\r'||ch==-1){
+							state = State.START;
+							updateLocation();
+						}
+						else{
+							updateLocation();
 						}
 					}
+					break;
+					case IN_IDENT:{
+						//To Do
+						break;
+					}
+					default:
+						throw new LexicalException("case not handled by lexer for " + (char)ch);
+					
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
