@@ -1,0 +1,5 @@
+
+.vscode/settings.json
+lib/junit-platform-console-standalone-1.9.0.jar
+*.class
+*.jar
