@@ -22,7 +22,54 @@ public class Token implements IToken {
 
 	@Override
 	public char[] getText() {
-		return text.toCharArray();
+		String results = unEscapeString(text);
+		return results.toCharArray();
+
+	}
+
+	public static String unEscapeString(String s) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < s.length(); i++)
+			switch (s.charAt(i)) {
+				case '\n':
+					sb.append("\\n");
+					break;
+				case '\t':
+					sb.append("\\t");
+					break;
+				case '\b':
+					sb.append("\\b");
+					break;
+				case '\f':
+					sb.append("\\f");
+					break;
+				case '\r':
+					sb.append("\\r");
+					break;
+				case '\"': {
+					if (i == 0 || i == s.length() - 1) {
+						sb.append("\"");
+					} else {
+						sb.append("\\\"");
+					}
+				}
+					break;
+				case '\'': {
+					if (i == 0 || i == s.length() - 1) {
+						sb.append("\'");
+					} else {
+						sb.append("\\\'");
+					}
+				}
+					break;
+				case '\\':
+					sb.append("\\\\");
+					break;
+
+				default:
+					sb.append(s.charAt(i));
+			}
+		return sb.toString();
 	}
 
 	@Override

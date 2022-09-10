@@ -14,8 +14,9 @@ public class Lexer implements ILexer {
 	String text;
 	StringReader r;
 	int ch;
-	List <String> keyWords = Arrays.asList("CONST","VAR", "PROCEDURE", "CALL", "BEGIN", "END", "IF", "THEN", "WHILE", "DO");
-	List <String> Bools = Arrays.asList("TRUE", "FALSE");
+	List<String> keyWords = Arrays.asList("CONST", "VAR", "PROCEDURE", "CALL", "BEGIN", "END", "IF", "THEN", "WHILE",
+			"DO");
+	List<String> Bools = Arrays.asList("TRUE", "FALSE");
 
 	public Lexer(String text) {
 		this.text = text;
@@ -30,13 +31,12 @@ public class Lexer implements ILexer {
 		IN_FLOAT,
 		IN_NUM,
 		HAVE_EQ,
-		HAVE_MINUS, 
+		HAVE_MINUS,
 		IN_STRINGLIT,
 		IN_COMMENT
 	}
 
 	void updateLocation() throws IOException {
-		System.out.println("Char inside ul: "+(char)ch);
 		if (ch == '\n') {
 			currLine = currLine + 1;
 			ch = r.read();
@@ -63,8 +63,8 @@ public class Lexer implements ILexer {
 		StringBuilder st = null;
 		State state = State.START;
 		while (t == null) {
-			System.out.println("State: "+state);
-			System.out.println("Character "+(char)ch);
+			System.out.println("State: " + state);
+			System.out.println("Character " + (char) ch);
 			try {
 				switch (state) {
 					case START: {
@@ -94,75 +94,61 @@ public class Lexer implements ILexer {
 								updateLocation();
 							}
 								break;
-							case 42:{
-								t = new Token(Kind.TIMES,"*",line,column);
+							case 42: {
+								t = new Token(Kind.TIMES, "*", line, column);
 								updateLocation();
 							}
-							break;
+								break;
 
 							case 34: {
 								state = State.IN_STRINGLIT;
 								st = new StringBuilder();
-								// st.append((char) 34);
+								st.append((char) 34);
 								updateLocation();
 							}
-							break;
+								break;
 							case 47: {
 								state = State.IN_COMMENT;
 								updateLocation();
 							}
-							break;
-							default:
-							{
-								// if (ch>=40 && ch<=90 || ch>=97 && ch<=122 || ch==95 || ch==36)
-								//Changing this if condition here to check is it works
-								if (Character.isJavaIdentifierStart(ch)){
-									System.out.println((char)ch);
+								break;
+							default: {
+								if (Character.isJavaIdentifierStart(ch)) {
+									System.out.println((char) ch);
 									state = State.IN_IDENT;
 									st = new StringBuilder();
-									st.append((char)ch);
-									//commenting stuff below this to test alternate way line 124,127,129
-									// st = new StringBuilder();
-									//Adding while condition here to check for test6
-									// while (Character.isJavaIdentifierPart(ch)){
-										// st.append((char)ch);									}
-									// st.append((char)ch);
+									st.append((char) ch);
 									updateLocation();
-								}
-								else if(Character.isDigit(ch)){
+								} else if (Character.isDigit(ch)) {
 									state = State.IN_NUM;
 									st = new StringBuilder();
-									st.append((char)ch);
+									st.append((char) ch);
 									updateLocation();
-								}
-								else{
+								} else {
 									throw new LexicalException("Invalid character for ident");
 								}
 							}
-							break;
+								break;
 						}
-					
+
 					}
-					break;
+						break;
 					case IN_STRINGLIT: {
-						System.out.println("Current char:"+(char)ch);
+						System.out.println("Current char:" + (char) ch);
 						System.out.println("In case string lit");
-						if (ch<0 || ch>127) {
+						if (ch < 0 || ch > 127) {
 							throw new LexicalException("Invalid character found in string literal");
 
-						}
-						else{
-							if(ch == 34){
-								// st.append((char)34);
-								// String str = st.toString();
-								t = new Token(Kind.STRING_LIT, st.toString(),line,column);
+						} else {
+							if (ch == 34) {
+								st.append((char) ch);
+								t = new Token(Kind.STRING_LIT, st.toString(), line, column);
 								state = State.START;
 								updateLocation();
-							}
-							else if(ch == 92){
+							} else if (ch == 92) {
 								updateLocation();
-								switch(ch) {
-									case 'b':{
+								switch (ch) {
+									case 'b': {
 										st.append("\b");
 										updateLocation();
 										break;
@@ -198,152 +184,145 @@ public class Lexer implements ILexer {
 										break;
 									}
 									case 92: {
-										st.append("\'");
+										st.append("\\");
 										updateLocation();
 										break;
 									}
 
-
 									default: {
 										throw new LexicalException("Could not match escape character after backslash");
 									}
-									
 
 								}
-							}
-							else{
-								st.append((char)ch);
+							} else {
+								st.append((char) ch);
 								updateLocation();
 							}
 						}
-						
+
 					}
-					break;
-					case IN_COMMENT:{
-						if (ch=='\n'||ch=='\r'||ch==-1){
+						break;
+					case IN_COMMENT: {
+						if (ch == '\n' || ch == '\r' || ch == -1) {
 							state = State.START;
 							updateLocation();
-						}
-						else{
+						} else {
 							updateLocation();
 						}
 					}
-					break;
-					case IN_IDENT:{
+						break;
+					case IN_IDENT: {
 
-						if (Character.isJavaIdentifierPart(ch)){
-							st.append((char)ch);
+						if (Character.isJavaIdentifierPart(ch)) {
+							st.append((char) ch);
 							updateLocation();
-						}
-						else if(ch == '\n'){
+						} else if (ch == '\n') {
 							t = new Token(Kind.IDENT, st.toString(), line, column);
 							state = State.START;
 							updateLocation();
-						}
-						else if(ch == 32){
+						} else if (ch == 32) {
 							String txt;
 							txt = st.toString();
-							t = new Token(Kind.IDENT,txt,line,column);
+							t = new Token(Kind.IDENT, txt, line, column);
 							state = State.START;
 							updateLocation();
-						}
-						else{
+						} else {
 							String txt;
-							txt=st.toString();
-							if(keyWords.contains(txt) || Bools.contains(txt)){
-								switch (txt){
+							txt = st.toString();
+							if (keyWords.contains(txt) || Bools.contains(txt)) {
+								switch (txt) {
 									case "CONST": {
-										t=new Token(Kind.KW_CONST,txt,line,column);
+										t = new Token(Kind.KW_CONST, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "VAR":{
-										t=new Token(Kind.KW_VAR,txt,line,column);
+										break;
+									case "VAR": {
+										t = new Token(Kind.KW_VAR, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "PROCEDURE":{
-										t=new Token(Kind.KW_PROCEDURE,txt,line,column);
+										break;
+									case "PROCEDURE": {
+										t = new Token(Kind.KW_PROCEDURE, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "CALL":{
-										t=new Token(Kind.KW_CALL,txt,line,column);
+										break;
+									case "CALL": {
+										t = new Token(Kind.KW_CALL, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "BEGIN":{
-										t=new Token(Kind.KW_BEGIN,txt,line,column);
+										break;
+									case "BEGIN": {
+										t = new Token(Kind.KW_BEGIN, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "END":{
-										t=new Token(Kind.KW_END,txt,line,column);
+										break;
+									case "END": {
+										t = new Token(Kind.KW_END, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "IF":{
-										t=new Token(Kind.KW_IF,txt,line,column);
+										break;
+									case "IF": {
+										t = new Token(Kind.KW_IF, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "THEN":{
-										t=new Token(Kind.KW_THEN,txt,line,column);
+										break;
+									case "THEN": {
+										t = new Token(Kind.KW_THEN, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "WHILE":{
-										t=new Token(Kind.KW_WHILE,txt,line,column);
+										break;
+									case "WHILE": {
+										t = new Token(Kind.KW_WHILE, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "DO":{
-										t=new Token(Kind.KW_DO,txt,line,column);
+										break;
+									case "DO": {
+										t = new Token(Kind.KW_DO, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "TRUE":{
-										t=new Token(Kind.BOOLEAN_LIT,txt,line,column);
+										break;
+									case "TRUE": {
+										t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
 										state = State.START;
 									}
-									break;
-									case "FALSE":{
-										t=new Token(Kind.BOOLEAN_LIT,txt,line,column);
+										break;
+									case "FALSE": {
+										t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
 										state = State.START;
 									}
-									break;
-									default:{
-										t=new Token(Kind.IDENT,txt,line,column);
+										break;
+									default: {
+										t = new Token(Kind.IDENT, txt, line, column);
 										state = State.START;
 									}
-									break;
+										break;
 								}
-							}
-							else{
+							} else {
 								throw new LexicalException("Invalid character for Identifier");
 							}
 						}
 					}
-					break;
-					case IN_NUM:{
-						if (Character.isDigit(ch)){
-							st.append((char)ch);
+						break;
+					case IN_NUM: {
+						if (Character.isDigit(ch)) {
+							st.append((char) ch);
 							updateLocation();
-						}
-						else{
+						} else {
 							String txt;
 							txt = st.toString();
 							try {
 								Integer.parseInt(txt);
-								t = new Token(Kind.NUM_LIT,txt,line,column); state = State.START;
+								t = new Token(Kind.NUM_LIT, txt, line, column);
+								state = State.START;
 							} catch (NumberFormatException ex) {
-								throw new LexicalException("The inputted integer is out of range at line " + (line+1) + " position " + (column+1));
+								throw new LexicalException("The number is too big for integer literal");
 							}
 						}
-					}break;
+					}
+						break;
 					default:
-						throw new LexicalException("case not handled by lexer for " + (char)ch);
-					
+						throw new LexicalException("case not handled by lexer for " + (char) ch);
+
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
