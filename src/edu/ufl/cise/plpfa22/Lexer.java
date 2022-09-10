@@ -2,6 +2,8 @@ package edu.ufl.cise.plpfa22;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.List;
 import edu.ufl.cise.plpfa22.Token;
 import static edu.ufl.cise.plpfa22.Token.Kind;
 
@@ -12,6 +14,8 @@ public class Lexer implements ILexer {
 	String text;
 	StringReader r;
 	int ch;
+	List <String> keyWords = Arrays.asList("CONST","VAR", "PROCEDURE", "CALL", "BEGIN", "END", "IF", "THEN", "WHILE", "DO");
+	List <String> Bools = Arrays.asList("TRUE", "FALSE");
 
 	public Lexer(String text) {
 		this.text = text;
@@ -110,13 +114,32 @@ public class Lexer implements ILexer {
 							break;
 							default:
 							{
-								if (ch>=40 && ch<=90 || ch>=97 && ch<=122 || ch==95 || ch==36){
+								// if (ch>=40 && ch<=90 || ch>=97 && ch<=122 || ch==95 || ch==36)
+								//Changing this if condition here to check is it works
+								if (Character.isJavaIdentifierStart(ch)){
+									System.out.println((char)ch);
 									state = State.IN_IDENT;
+									st = new StringBuilder();
+									st.append((char)ch);
+									//commenting stuff below this to test alternate way line 124,127,129
+									// st = new StringBuilder();
+									//Adding while condition here to check for test6
+									// while (Character.isJavaIdentifierPart(ch)){
+										// st.append((char)ch);									}
+									// st.append((char)ch);
+									updateLocation();
+								}
+								else if(Character.isDigit(ch)){
+									state = State.IN_NUM;
 									st = new StringBuilder();
 									st.append((char)ch);
 									updateLocation();
 								}
+								else{
+									throw new LexicalException("Invalid character for ident");
+								}
 							}
+							break;
 						}
 					
 					}
@@ -207,9 +230,117 @@ public class Lexer implements ILexer {
 					}
 					break;
 					case IN_IDENT:{
-						//To Do
-						break;
+
+						if (Character.isJavaIdentifierPart(ch)){
+							st.append((char)ch);
+							updateLocation();
+						}
+						else if(ch == '\n'){
+							t = new Token(Kind.IDENT, st.toString(), line, column);
+							state = State.START;
+							updateLocation();
+						}
+						else if(ch == 32){
+							String txt;
+							txt = st.toString();
+							t = new Token(Kind.IDENT,txt,line,column);
+							state = State.START;
+							updateLocation();
+						}
+						else{
+							String txt;
+							txt=st.toString();
+							if(keyWords.contains(txt) || Bools.contains(txt)){
+								switch (txt){
+									case "CONST": {
+										t=new Token(Kind.KW_CONST,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "VAR":{
+										t=new Token(Kind.KW_VAR,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "PROCEDURE":{
+										t=new Token(Kind.KW_PROCEDURE,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "CALL":{
+										t=new Token(Kind.KW_CALL,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "BEGIN":{
+										t=new Token(Kind.KW_BEGIN,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "END":{
+										t=new Token(Kind.KW_END,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "IF":{
+										t=new Token(Kind.KW_IF,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "THEN":{
+										t=new Token(Kind.KW_THEN,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "WHILE":{
+										t=new Token(Kind.KW_WHILE,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "DO":{
+										t=new Token(Kind.KW_DO,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "TRUE":{
+										t=new Token(Kind.BOOLEAN_LIT,txt,line,column);
+										state = State.START;
+									}
+									break;
+									case "FALSE":{
+										t=new Token(Kind.BOOLEAN_LIT,txt,line,column);
+										state = State.START;
+									}
+									break;
+									default:{
+										t=new Token(Kind.IDENT,txt,line,column);
+										state = State.START;
+									}
+									break;
+								}
+							}
+							else{
+								throw new LexicalException("Invalid character for Identifier");
+							}
+						}
 					}
+					break;
+					case IN_NUM:{
+						if (Character.isDigit(ch)){
+							st.append((char)ch);
+							updateLocation();
+						}
+						else{
+							String txt;
+							txt = st.toString();
+							try {
+								Integer.parseInt(txt);
+								t = new Token(Kind.NUM_LIT,txt,line,column); state = State.START;
+							} catch (NumberFormatException ex) {
+								throw new LexicalException("The inputted integer is out of range at line " + (line+1) + " position " + (column+1));
+							}
+						}
+					}break;
 					default:
 						throw new LexicalException("case not handled by lexer for " + (char)ch);
 					
