@@ -32,7 +32,8 @@ public class Lexer implements ILexer {
 		IN_COMMENT,
 		HAVE_COLON,
 		HAVE_LT,
-		HAVE_GT
+		HAVE_GT,
+		HAVE_FORWARDSLASH
 	}
 
 	void updateLocation() throws IOException {
@@ -164,7 +165,7 @@ public class Lexer implements ILexer {
 							}
 								break;
 							case 47: {
-								state = State.IN_COMMENT;
+								state = State.HAVE_FORWARDSLASH;
 								updateLocation();
 							}
 								break;
@@ -186,6 +187,22 @@ public class Lexer implements ILexer {
 								}
 							}
 								break;
+						}
+
+					}
+						break;
+					case HAVE_FORWARDSLASH: {
+						switch (ch) {
+							case '/': {
+								state = State.IN_COMMENT;
+								updateLocation();
+							}
+								break;
+							default: {
+								t = new Token(Kind.DIV, "/", line, column);
+								state = State.START;
+								updateLocation();
+							}
 						}
 
 					}
@@ -531,7 +548,7 @@ public class Lexer implements ILexer {
 							}
 								break;
 							case 47: {
-								state = State.IN_COMMENT;
+								state = State.HAVE_FORWARDSLASH;
 							}
 								break;
 							default: {
@@ -549,6 +566,21 @@ public class Lexer implements ILexer {
 								}
 							}
 						}
+					}
+						break;
+					case HAVE_FORWARDSLASH: {
+						c = r.read();
+						switch (c) {
+							case '/': {
+								state = State.IN_COMMENT;
+							}
+								break;
+							default: {
+								t = new Token(Kind.DIV, "/", line, column);
+								state = State.START;
+							}
+						}
+
 					}
 						break;
 					case HAVE_LT: {
