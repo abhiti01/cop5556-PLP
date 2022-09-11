@@ -567,7 +567,7 @@ public class Lexer implements ILexer {
 						break;
 					case HAVE_GT: {
 						c = r.read();
-						switch (ch) {
+						switch (c) {
 							case '=': {
 								t = new Token(Kind.GE, ">=", line, column);
 								state = State.START;
@@ -605,6 +605,7 @@ public class Lexer implements ILexer {
 								s.append((char) c);
 								t = new Token(Kind.STRING_LIT, s.toString(), line, column);
 								state = State.START;
+								c = r.read();
 							} else if (c == 92) {
 								c = r.read();
 								switch (c) {
@@ -666,6 +667,7 @@ public class Lexer implements ILexer {
 						c = r.read();
 						if (c == '\n' || c == '\r' || c == -1) {
 							state = State.START;
+							updateLocation();
 						} else {
 							c = r.read();
 						}

@@ -220,6 +220,7 @@ class LexerTest {
 			assertEquals(kind, Kind.EOF);
 		}
 	}
+
 	@Test
 	public void test1() throws LexicalException {
 		String input = """
@@ -230,32 +231,32 @@ class LexerTest {
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
 			assertEquals(kind, Kind.IDENT);
-			SourceLocation sl= token.getSourceLocation();
+			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-			System.err.println("Line"+line);
+			System.err.println("Line" + line);
 
 			assertEquals(sl.line(), 1);
 			int charPositionInLine = sl.column();
-			System.err.println("Pos"+charPositionInLine);
+			System.err.println("Pos" + charPositionInLine);
 
 			assertEquals(charPositionInLine, 1);
-			char [] text = token.getText();
+			char[] text = token.getText();
 			String text2 = String.valueOf(text);
-			System.out.println("text" +text2);
+			System.out.println("text" + text2);
 			assertEquals(text2, "abc");
 		}
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
 			assertEquals(kind, Kind.IDENT);
-			SourceLocation sl= token.getSourceLocation();
+			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
 			assertEquals(line, 2);
 			int charPositionInLine = sl.column();
 			assertEquals(charPositionInLine, 2);
 			char[] text = token.getText();
 			assertEquals(text, "def");
-			
+
 		}
 		{
 			IToken token = lexer.next();
@@ -268,7 +269,7 @@ class LexerTest {
 			assertEquals(charPositionInLine, 5);
 			char[] text = token.getText();
 			assertEquals(text, "ghi");
-			
+
 		}
 		{
 			IToken token = lexer.next();
@@ -282,21 +283,21 @@ class LexerTest {
 		String input = """
 				a123 123a
 				""";
-//		System.out.println("New test");
+		// System.out.println("New test");
 		ILexer lexer = getLexer(input);
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
+			// System.err.println("Kind"+kind);
 
 			assertEquals(kind, Kind.IDENT);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
+			// System.err.println("Line"+line);
 
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
+			// System.err.println("Pos"+charPositionInLine);
 
 			assertEquals(charPositionInLine, 1);
 			char[] text = token.getText();
@@ -306,19 +307,19 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("mixed1Kind"+kind);
+			// System.err.println("mixed1Kind"+kind);
 
 			assertEquals(kind, Kind.NUM_LIT);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
+			// System.err.println("Line"+line);
 
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
+			// System.err.println("Pos"+charPositionInLine);
 
 			assertEquals(charPositionInLine, 6);
-			char [] text = token.getText();
+			char[] text = token.getText();
 			String text2 = String.valueOf(text);
 			assertEquals(text2, "123");
 			int val = token.getIntValue();
@@ -327,16 +328,16 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("mixed2Kind"+kind);
+			// System.err.println("mixed2Kind"+kind);
 
 			assertEquals(kind, Kind.IDENT);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
+			// System.err.println("Line"+line);
 
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
+			// System.err.println("Pos"+charPositionInLine);
 
 			assertEquals(charPositionInLine, 9);
 			char[] text = token.getText();
@@ -346,7 +347,7 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-			System.err.println("Kind"+kind);
+			System.err.println("Kind" + kind);
 
 			assertEquals(kind, Kind.EOF);
 		}
@@ -361,17 +362,17 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
-//			
+			// System.err.println("Kind"+kind);
+			//
 			assertEquals(kind, Kind.ASSIGN);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
-//			
+			// System.err.println("Line"+line);
+			//
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
-			
+			// System.err.println("Pos"+charPositionInLine);
+
 			assertEquals(charPositionInLine, 0);
 			char[] text = token.getText();
 			assertEquals(text, "=");
@@ -379,35 +380,35 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
-			
+			// System.err.println("Kind"+kind);
+
 			assertEquals(kind, Kind.EQ);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
-			
+			// System.err.println("Line"+line);
+
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
-			
+			// System.err.println("Pos"+charPositionInLine);
+
 			assertEquals(charPositionInLine, 2);
-			char[] text = token.getText();			
+			char[] text = token.getText();
 			assertEquals(text, "==");
 		}
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
-			
+			// System.err.println("Kind"+kind);
+
 			assertEquals(kind, Kind.EQ);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
-			
+			// System.err.println("Line"+line);
+
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
-			
+			// System.err.println("Pos"+charPositionInLine);
+
 			assertEquals(charPositionInLine, 5);
 			char[] text = token.getText();
 			assertEquals(text, "==");
@@ -415,25 +416,25 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
+			// System.err.println("Kind"+kind);
 			SourceLocation sl = token.getSourceLocation();
 			assertEquals(kind, Kind.ASSIGN);
 			int line = sl.line();
-//			System.err.println("Line"+line);
-			
+			// System.err.println("Line"+line);
+
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
-			
+			// System.err.println("Pos"+charPositionInLine);
+
 			assertEquals(charPositionInLine, 7);
-			char[] text = token.getText();			
+			char[] text = token.getText();
 			assertEquals(text, "=");
 		}
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
-			
+			// System.err.println("Kind"+kind);
+
 			assertEquals(kind, Kind.EOF);
 		}
 	}
@@ -447,17 +448,17 @@ class LexerTest {
 		{
 			IToken token = lexer.next();
 			Kind kind = token.getKind();
-//			System.err.println("Kind"+kind);
-			
+			// System.err.println("Kind"+kind);
+
 			assertEquals(kind, Kind.IDENT);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-//			System.err.println("Line"+line);
-			
+			// System.err.println("Line"+line);
+
 			assertEquals(line, 1);
 			int charPositionInLine = sl.column();
-//			System.err.println("Pos"+charPositionInLine);
-			
+			// System.err.println("Pos"+charPositionInLine);
+
 			assertEquals(charPositionInLine, 1);
 			char[] text = token.getText();
 			String text2 = String.valueOf(text);
@@ -479,5 +480,57 @@ class LexerTest {
 			@SuppressWarnings("unused")
 			IToken token = lexer.next();
 		});
-		}
+	}
+
+	@Test
+	void peektest1() throws LexicalException {
+		String input = """
+				+
+				-
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.peek(), Kind.PLUS);
+		checkToken(lexer.next(), Kind.PLUS);
+		checkToken(lexer.peek(), Kind.MINUS);
+		checkToken(lexer.next(), Kind.MINUS);
+		checkEOF(lexer.peek());
+		checkEOF(lexer.next());
+	}
+
+	@Test
+	void peektest2() throws LexicalException {
+		// Note that the quotes around "This is a string" are passed to the lexer.
+		String input = """
+				"This is a string"
+				*
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.peek(), Kind.STRING_LIT);
+		checkToken(lexer.next(), Kind.STRING_LIT, 1, 1);
+		checkToken(lexer.peek(), Kind.TIMES);
+		checkToken(lexer.next(), Kind.TIMES, 2, 1);
+		checkEOF(lexer.peek());
+		checkEOF(lexer.next());
+	}
+
+	// @Test
+	// void peektest3() throws LexicalException {
+	// // Note that the quotes around "This is a string" are passed to the lexer.
+	// String input = """
+	// "This is a string"
+	// // this is a comment
+	// *
+	// """;
+	// show(input);
+	// ILexer lexer = getLexer(input);
+	// checkToken(lexer.peek(), Kind.STRING_LIT);
+	// checkToken(lexer.next(), Kind.STRING_LIT, 1, 1);
+	// checkToken(lexer.peek(), Kind.TIMES);
+	// checkToken(lexer.next(), Kind.TIMES, 3, 1);
+	// checkEOF(lexer.peek());
+	// checkEOF(lexer.next());
+	// }
+
 }
