@@ -14,6 +14,7 @@ import edu.ufl.cise.plpfa22.CompilerComponentFactory;
 import edu.ufl.cise.plpfa22.ILexer;
 import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.IToken.Kind;
+import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.LexicalException;
 
 class LexerTest {
@@ -219,4 +220,264 @@ class LexerTest {
 			assertEquals(kind, Kind.EOF);
 		}
 	}
+	@Test
+	public void test1() throws LexicalException {
+		String input = """
+				abc ()
+				""";
+		ILexer lexer = getLexer(input);
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+			assertEquals(kind, Kind.IDENT);
+			SourceLocation sl= token.getSourceLocation();
+			int line = sl.line();
+			System.err.println("Line"+line);
+
+			assertEquals(sl.line(), 1);
+			int charPositionInLine = sl.column();
+			System.err.println("Pos"+charPositionInLine);
+
+			assertEquals(charPositionInLine, 1);
+			char [] text = token.getText();
+			String text2 = String.valueOf(text);
+			System.out.println("text" +text2);
+			assertEquals(text2, "abc");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+			assertEquals(kind, Kind.IDENT);
+			SourceLocation sl= token.getSourceLocation();
+			int line = sl.line();
+			assertEquals(line, 2);
+			int charPositionInLine = sl.column();
+			assertEquals(charPositionInLine, 2);
+			char[] text = token.getText();
+			assertEquals(text, "def");
+			
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+			assertEquals(kind, Kind.IDENT);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+			assertEquals(line, 3);
+			int charPositionInLine = sl.column();
+			assertEquals(charPositionInLine, 5);
+			char[] text = token.getText();
+			assertEquals(text, "ghi");
+			
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+			assertEquals(kind, Kind.EOF);
+		}
+	}
+
+	@Test
+	public void test2() throws LexicalException {
+		String input = """
+				a123 123a
+				""";
+//		System.out.println("New test");
+		ILexer lexer = getLexer(input);
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+
+			assertEquals(kind, Kind.IDENT);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+
+			assertEquals(charPositionInLine, 1);
+			char[] text = token.getText();
+			String text2 = String.valueOf(text);
+			assertEquals(text2, "a123");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("mixed1Kind"+kind);
+
+			assertEquals(kind, Kind.NUM_LIT);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+
+			assertEquals(charPositionInLine, 6);
+			char [] text = token.getText();
+			String text2 = String.valueOf(text);
+			assertEquals(text2, "123");
+			int val = token.getIntValue();
+			assertEquals(val, 123);
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("mixed2Kind"+kind);
+
+			assertEquals(kind, Kind.IDENT);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+
+			assertEquals(charPositionInLine, 9);
+			char[] text = token.getText();
+			String text2 = String.valueOf(text);
+			assertEquals(text2, "a");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+			System.err.println("Kind"+kind);
+
+			assertEquals(kind, Kind.EOF);
+		}
+	}
+
+	@Test
+	public void test3() throws LexicalException {
+		String input = """
+				= := ===
+				""";
+		ILexer lexer = getLexer(input);
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+//			
+			assertEquals(kind, Kind.ASSIGN);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+//			
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+			
+			assertEquals(charPositionInLine, 0);
+			char[] text = token.getText();
+			assertEquals(text, "=");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+			
+			assertEquals(kind, Kind.EQ);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+			
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+			
+			assertEquals(charPositionInLine, 2);
+			char[] text = token.getText();			
+			assertEquals(text, "==");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+			
+			assertEquals(kind, Kind.EQ);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+			
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+			
+			assertEquals(charPositionInLine, 5);
+			char[] text = token.getText();
+			assertEquals(text, "==");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+			SourceLocation sl = token.getSourceLocation();
+			assertEquals(kind, Kind.ASSIGN);
+			int line = sl.line();
+//			System.err.println("Line"+line);
+			
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+			
+			assertEquals(charPositionInLine, 7);
+			char[] text = token.getText();			
+			assertEquals(text, "=");
+		}
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+			
+			assertEquals(kind, Kind.EOF);
+		}
+	}
+
+	@Test
+	public void test4() throws LexicalException {
+		String input = """
+				a %
+				""";
+		ILexer lexer = getLexer(input);
+		{
+			IToken token = lexer.next();
+			Kind kind = token.getKind();
+//			System.err.println("Kind"+kind);
+			
+			assertEquals(kind, Kind.IDENT);
+			SourceLocation sl = token.getSourceLocation();
+			int line = sl.line();
+//			System.err.println("Line"+line);
+			
+			assertEquals(line, 1);
+			int charPositionInLine = sl.column();
+//			System.err.println("Pos"+charPositionInLine);
+			
+			assertEquals(charPositionInLine, 1);
+			char[] text = token.getText();
+			String text2 = String.valueOf(text);
+			assertEquals(text2, "a");
+		}
+		assertThrows(LexicalException.class, () -> {
+			@SuppressWarnings("unused")
+			IToken token = lexer.next();
+		});
+	}
+
+	@Test
+	public void test5() throws LexicalException {
+		String input = """
+				99999999999999999999999999999999999999999999999999999999999999999999999
+				""";
+		ILexer lexer = getLexer(input);
+		assertThrows(LexicalException.class, () -> {
+			@SuppressWarnings("unused")
+			IToken token = lexer.next();
+		});
+		}
 }
