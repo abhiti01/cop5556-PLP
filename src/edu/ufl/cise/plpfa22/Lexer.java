@@ -63,8 +63,6 @@ public class Lexer implements ILexer {
 		StringBuilder st = null;
 		State state = State.START;
 		while (t == null) {
-			System.out.println("State: " + state);
-			System.out.println("Character " + (char) ch);
 			try {
 				switch (state) {
 					case START: {
@@ -171,7 +169,6 @@ public class Lexer implements ILexer {
 								break;
 							default: {
 								if (Character.isJavaIdentifierStart(ch)) {
-									System.out.println((char) ch);
 									state = State.IN_IDENT;
 									st = new StringBuilder();
 									st.append((char) ch);
@@ -468,7 +465,6 @@ public class Lexer implements ILexer {
 			try {
 				switch (state) {
 					case START: {
-						System.out.println("IN CASE STRT" + (char) c);
 						line = currLine;
 						column = currColumn;
 						switch (c) {
@@ -489,7 +485,6 @@ public class Lexer implements ILexer {
 							}
 								break;
 							case 42: {
-								System.out.println("Inside peek START, IN_TIMES case");
 								t = new Token(Kind.TIMES, "*", line, column);
 							}
 								break;
@@ -698,16 +693,11 @@ public class Lexer implements ILexer {
 					}
 						break;
 					case IN_COMMENT: {
-						System.out.println("Inside peek IN_COMMENT");
 						c = r.read();
 						if (c == '\n' || c == '\r' || c == -1) {
-							System.out.println("Inside peek IN_COMMENT ending" + (char) c);
-							// added c r.read here
 							state = State.START;
 							c = r.read();
 						} else {
-							System.out.println((char) c);
-							// c = r.read();
 							state = State.IN_COMMENT;
 						}
 					}
