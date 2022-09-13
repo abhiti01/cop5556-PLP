@@ -3,19 +3,10 @@
  */
 
 package edu.ufl.cise.plpfa22;
-
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
-
-import edu.ufl.cise.plpfa22.CompilerComponentFactory;
-import edu.ufl.cise.plpfa22.ILexer;
-import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
-import edu.ufl.cise.plpfa22.LexicalException;
 
 class LexerTest {
 

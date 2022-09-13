@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
-import edu.ufl.cise.plpfa22.Token;
 import static edu.ufl.cise.plpfa22.Token.Kind;
 
 public class Lexer implements ILexer {
