@@ -3,6 +3,7 @@
  */
 
 package edu.ufl.cise.plpfa22;
+
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import edu.ufl.cise.plpfa22.IToken.Kind;
@@ -17,7 +18,7 @@ class LexerTest {
 
 	// makes it easy to turn output on and off (and less typing than
 	// System.out.println)
-	static final boolean VERBOSE = true;
+	static final boolean VERBOSE = false;
 
 	void show(Object obj) {
 		if (VERBOSE) {
@@ -224,16 +225,16 @@ class LexerTest {
 			assertEquals(kind, Kind.IDENT);
 			SourceLocation sl = token.getSourceLocation();
 			int line = sl.line();
-			System.err.println("Line" + line);
+			// System.err.println("Line" + line);
 
 			assertEquals(sl.line(), 1);
 			int charPositionInLine = sl.column();
-			System.err.println("Pos" + charPositionInLine);
+			// System.err.println("Pos" + charPositionInLine);
 
 			assertEquals(charPositionInLine, 1);
 			char[] text = token.getText();
 			String text2 = String.valueOf(text);
-			System.out.println("text" + text2);
+			// System.out.println("text" + text2);
 			assertEquals(text2, "abc");
 		}
 		{
