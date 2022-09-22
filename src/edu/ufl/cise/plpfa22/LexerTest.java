@@ -18,7 +18,7 @@ class LexerTest {
 
 	// makes it easy to turn output on and off (and less typing than
 	// System.out.println)
-	static final boolean VERBOSE = false;
+	static final boolean VERBOSE = true;
 
 	void show(Object obj) {
 		if (VERBOSE) {
@@ -381,6 +381,386 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.TIMES, 3, 1);
 		checkEOF(lexer.peek());
 		checkEOF(lexer.next());
+	}
+
+	// adding test cases that our submission failed
+	// comment next to String input shows current test output
+
+	@Test
+	void gradingtest3() throws LexicalException {
+		String input = "5a a4"; // Lexical Exception: Invalid character for Identifier
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkInt(lexer.next(), 5, 1, 1);
+		checkIdent(lexer.next(), "a", 1, 2);
+		checkIdent(lexer.next(), "a4", 1, 4);
+	}
+
+	@Test
+	void gradingtest4() throws LexicalException {
+		String input = "a+2 2-x"; // Lexical Exception: Invalid character for Identifier
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "a", 1, 1);
+		checkToken(lexer.next(), Kind.PLUS, 1, 2);
+		checkInt(lexer.next(), 2, 1, 3);
+
+	}
+
+	@Test
+	void gradingtest7() throws LexicalException {
+		String input = "f.g . .."; // Lexical Exception: Invalid character for Identifier
+		show(input);
+		ILexer lexer = getLexer(input);
+
+	}
+
+	@Test
+	void gradingtest8() throws LexicalException {
+		String input = ".,;()"; // Lexical Exception: Error while getting next token, state: START, char:
+		show(input);
+		ILexer lexer = getLexer(input);
+
+	}
+
+	@Test
+	void gradingtest9() throws LexicalException {
+		String input = "+-*/%"; // for lexer input at SourceLocation[line=1, column=6] +-*/% ==> expected: <MOD>
+								// but was: <EOF>
+		show(input);
+		ILexer lexer = getLexer(input);
+
+	}
+
+	@Test
+	void gradingtest11() throws LexicalException {
+		String input = "00"; // for lexer input at SourceLocation[line=1, column=3] 00 ==> expected:
+								// <NUM_LIT> but was: <EOF>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest13() throws LexicalException {
+		String input = "_abc _ $ a$b c_d"; // Lexical Exception: Invalid character for Identifier
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest14() throws LexicalException {
+		String input = "_abc1 _123 _ $ "; // Lexical Exception: Invalid character for Identifier
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest15() throws LexicalException {
+		String input = " TRUE FALSE TRUEFALSE FALSETRUE"; // for lexer input at SourceLocation[line=1, column=1] TRUE
+															// FALSE TRUEFALSE FALSETRUE ==> expected: <BOOLEAN_LIT> but
+															// was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest17() throws LexicalException {
+		String input = "CONST VAR PROCEDURE"; // for lexer input at SourceLocation[line=1, column=1] CONST VAR
+												// PROCEDURE ==> expected: <KW_CONST> but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.KW_CONST, 1, 1);
+		checkToken(lexer.next(), Kind.KW_VAR, 1, 7);
+		checkToken(lexer.next(), Kind.KW_PROCEDURE, 1, 11);
+	}
+
+	@Test
+	void gradingtest18() throws LexicalException {
+		String input = "CALL BEGIN END"; // for lexer input at SourceLocation[line=1, column=1] CALL BEGIN END ==>
+											// expected: <KW_CALL> but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.KW_CALL, 1, 1);
+		checkToken(lexer.next(), Kind.KW_BEGIN, 1, 6);
+		checkToken(lexer.next(), Kind.KW_END, 1, 12);
+	}
+
+	@Test
+	void gradingtest19() throws LexicalException {
+		String input = "IF THEN WHILE DO"; // for lexer input at SourceLocation[line=1, column=1] IF THEN WHILE DO ==>
+											// expected: <KW_IF> but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.KW_IF, 1, 1);
+		checkToken(lexer.next(), Kind.KW_THEN, 1, 4);
+		checkToken(lexer.next(), Kind.KW_WHILE, 1, 9);
+		checkToken(lexer.next(), Kind.KW_DO, 1, 15);
+	}
+
+	@Test
+	void gradingtest20() throws LexicalException {
+		String input = "123DO DOabc DO123 DO_"; // for lexer input at SourceLocation[line=1, column=4] 123DO DOabc
+												// DO123 DO_ ==> expected: <KW_DO> but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkInt(lexer.next(), 123, 1, 1);
+		checkToken(lexer.next(), Kind.KW_DO, 1, 4);
+		checkIdent(lexer.next(), "DOabc", 1, 7);
+		checkIdent(lexer.next(), "DO123", 1, 13);
+		checkIdent(lexer.next(), "DO_", 1, 19);
+
+	}
+
+	@Test
+	void gradingtest21() throws LexicalException {
+		String input = "123VAR PROCEDUREabc BEGIN123 end_"; // for lexer input at SourceLocation[line=1, column=4]
+															// 123VAR PROCEDUREabc BEGIN123 end_ ==> expected: <KW_VAR>
+															// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkInt(lexer.next(), 123, 1, 1);
+		checkToken(lexer.next(), Kind.KW_VAR, 1, 4);
+		checkIdent(lexer.next(), "PROCEDUREabc", 1, 8);
+		checkIdent(lexer.next(), "BEGIN123", 1, 21);
+		checkIdent(lexer.next(), "end_", 1, 30);
+	}
+
+	@Test
+	void gradingtest25() throws LexicalException {
+		String input = "! TRUE ."; // for lexer input at SourceLocation[line=1, column=3]
+									// !TRUE.==>expected:<BOOLEAN_LIT> but was:<IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.BANG, 1, 1);
+		checkToken(lexer.next(), Kind.BOOLEAN_LIT, 1, 3);
+		checkToken(lexer.next(), Kind.DOT, 1, 8);
+	}
+
+	@Test
+	void gradingtest27() throws LexicalException {
+		String input = """
+				VAR abc;
+				.
+				""";
+		// for lexer input at SourceLocation[line=1, column=1] VAR abc; . ==> expected:
+		// <KW_VAR> but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.KW_VAR, 1, 1);
+		checkIdent(lexer.next(), "abc", 1, 5);
+		checkToken(lexer.next(), Kind.SEMI, 1, 8);
+		checkToken(lexer.next(), Kind.DOT, 2, 1);
+	}
+
+	@Test
+	void gradingtest28() throws LexicalException {
+		String input = """
+				BEGIN
+				! "hello";
+				! TRUE;
+				!  33 ;
+				! variable
+				END
+				.
+				""";
+		// for lexer input at SourceLocation[line=1, column=1] expected: <KW_BEGIN> but
+		// was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.KW_BEGIN, 1, 1);
+		checkToken(lexer.next(), Kind.BANG, 2, 1);
+		checkToken(lexer.next(), Kind.STRING_LIT, 2, 3);
+		checkToken(lexer.next(), Kind.SEMI, 2, 10);
+
+	}
+
+	@Test
+	void gradingtest29() throws LexicalException {
+		String input = """
+				BEGIN
+				? abc;
+				! variable
+				END
+				.
+				""";
+		// for lexer input at SourceLocation[line=1, column=1] expected: <KW_BEGIN> but
+		// was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		lexer.next();
+		checkToken(lexer.next(), Kind.QUESTION, 2, 1);
+		lexer.next();
+		lexer.next();
+		lexer.next();
+		checkIdent(lexer.next(), "variable", 3, 3);
+
+	}
+
+	@Test
+	void gradingtest30() throws LexicalException {
+		String input = """
+				CONST a = 3, b = TRUE, c = "hello";
+				.
+				""";
+		// ==> for lexer input at SourceLocation[line=1, column=1] expected: <KW_CONST>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+		lexer.next();
+		lexer.next();
+		checkToken(lexer.next(), Kind.EQ, 1, 9);
+		checkInt(lexer.next(), 3, 1, 11);
+		checkToken(lexer.next(), Kind.COMMA, 1, 12);
+
+	}
+
+	// tests with peek() begin here
+
+	@Test
+	void gradingtest31() throws LexicalException {
+		String input = """
+				BEGIN
+				x := 3;
+				y := "hello";
+				b := FALSE
+				END
+				.
+				""";
+
+		// ==> for lexer input at SourceLocation[line=1, column=1] expected: <KW_BEGIN>
+		// but was: <IDENT>
+		// TO DO: fix line and column inside peek()
+		// the commented lines in this test case are failing
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.peek(), Kind.KW_BEGIN);
+		// checkToken(lexer.peek(), Kind.KW_BEGIN, 1, 1);
+		checkToken(lexer.next(), Kind.KW_BEGIN, 1, 1);
+		checkIdent(lexer.peek(), "x");
+		// checkIdent(lexer.peek(), "x", 2, 1);
+		checkIdent(lexer.next(), "x", 2, 1);
+		checkToken(lexer.peek(), Kind.ASSIGN);
+		// checkToken(lexer.peek(), Kind.ASSIGN, 2, 3);
+		checkToken(lexer.next(), Kind.ASSIGN, 2, 3);
+	}
+
+	@Test
+	void gradingtest32() throws LexicalException {
+		String input = """
+				BEGIN
+				CALL x
+				END
+				.
+				""";
+		// ==> for lexer input at SourceLocation[line=1, column=1] expected: <KW_BEGIN>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest33() throws LexicalException {
+		String input = """
+				CONST a=3;
+				VAR x,y,z;
+				PROCEDURE p;
+				  VAR j;
+				  BEGIN
+				 	? x;
+				 	IF x = 0 THEN ! y ;
+				 	WHILE j < 24 DO CALL z
+				  END;
+				! z
+				.
+				""";
+
+		// ==> for lexer input at SourceLocation[line=1, column=1] expected: <KW_CONST>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest34() throws LexicalException {
+		String input = """
+				CONST a=3;
+				VAR x,y,z;
+				PROCEDURE p;
+				  VAR j;
+				  BEGIN
+				 	? x;
+				 	IF x = 0 THEN ! y ;
+				 	WHILE j < 24 DO CALL z
+				  END;
+				! a+b - (c/e) * 35/(3+4)
+				.
+				""";
+
+		// ==> for lexer input at SourceLocation[line=1, column=1] expected: <KW_CONST>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest35() throws LexicalException {
+		String input = """
+				//comment
+				VAR X = 34%2;
+				""";
+
+		// ==> for lexer input at SourceLocation[line=2, column=1] expected: <KW_VAR>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest37() throws LexicalException {
+		String input = """
+				VAR x123_ = 0;
+				////comment
+				""";
+
+		// ==> for lexer input at SourceLocation[line=1, column=1] expected: <KW_VAR>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest38() throws LexicalException {
+		String input = """
+
+				VAR x,y,z;
+				x := 3;
+				y := 4;
+				IF x <= y
+				THEN TRUE;
+				""";
+
+		// ==> for lexer input at SourceLocation[line=2, column=3] expected: <KW_VAR>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
+	}
+
+	@Test
+	void gradingtest39() throws LexicalException {
+		String input = """
+
+
+
+				VAR x=3;
+				CONST y=4;
+				IF x#y
+				THEN TRUE;
+				""";
+
+		// ==> for lexer input at SourceLocation[line=4, column=4] expected: <KW_VAR>
+		// but was: <IDENT>
+		show(input);
+		ILexer lexer = getLexer(input);
 	}
 
 }

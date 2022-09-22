@@ -104,6 +104,10 @@ public class Lexer implements ILexer {
 								updateLocation();
 							}
 								break;
+							case 44: {
+								t = new Token(Kind.COMMA, ",", line, column);
+							}
+								break;
 							case 46: {
 								t = new Token(Kind.DOT, ".", line, column);
 								updateLocation();
@@ -167,13 +171,24 @@ public class Lexer implements ILexer {
 							}
 								break;
 							default: {
-								if (Character.isJavaIdentifierStart(ch)) {
+								if (Character.isDigit(ch)) {
+									switch (ch) {
+										case '0': {
+											t = new Token(Kind.NUM_LIT, "0", line, column);
+											updateLocation();
+										}
+											break;
+										default: {
+											state = State.IN_NUM;
+											st = new StringBuilder();
+											st.append((char) ch);
+											updateLocation();
+										}
+											break;
+									}
+
+								} else if (Character.isJavaIdentifierStart(ch)) {
 									state = State.IN_IDENT;
-									st = new StringBuilder();
-									st.append((char) ch);
-									updateLocation();
-								} else if (Character.isDigit(ch)) {
-									state = State.IN_NUM;
 									st = new StringBuilder();
 									st.append((char) ch);
 									updateLocation();
@@ -326,93 +341,90 @@ public class Lexer implements ILexer {
 					}
 						break;
 					case IN_IDENT: {
-
 						if (Character.isJavaIdentifierPart(ch)) {
 							st.append((char) ch);
 							updateLocation();
-						} else if (ch == '\n') {
-							t = new Token(Kind.IDENT, st.toString(), line, column);
-							state = State.START;
-							updateLocation();
-						} else if (ch == 32) {
+						}
+						// } else if (ch == '\n') {
+						// t = new Token(Kind.IDENT, st.toString(), line, column);
+						// state = State.START;
+						// updateLocation();
+						// } else if (ch == 32) {
+						// String txt;
+						// txt = st.toString();
+						// t = new Token(Kind.IDENT, txt, line, column);
+						// state = State.START;
+						// updateLocation();
+						// }
+						else {
 							String txt;
 							txt = st.toString();
-							t = new Token(Kind.IDENT, txt, line, column);
-							state = State.START;
-							updateLocation();
-						} else {
-							String txt;
-							txt = st.toString();
-							if (keyWords.contains(txt) || Bools.contains(txt)) {
-								switch (txt) {
-									case "CONST": {
-										t = new Token(Kind.KW_CONST, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "VAR": {
-										t = new Token(Kind.KW_VAR, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "PROCEDURE": {
-										t = new Token(Kind.KW_PROCEDURE, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "CALL": {
-										t = new Token(Kind.KW_CALL, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "BEGIN": {
-										t = new Token(Kind.KW_BEGIN, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "END": {
-										t = new Token(Kind.KW_END, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "IF": {
-										t = new Token(Kind.KW_IF, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "THEN": {
-										t = new Token(Kind.KW_THEN, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "WHILE": {
-										t = new Token(Kind.KW_WHILE, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "DO": {
-										t = new Token(Kind.KW_DO, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "TRUE": {
-										t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "FALSE": {
-										t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
-										state = State.START;
-									}
-										break;
-									default: {
-										t = new Token(Kind.IDENT, txt, line, column);
-										state = State.START;
-									}
-										break;
+							switch (txt) {
+								case "CONST": {
+									t = new Token(Kind.KW_CONST, txt, line, column);
+									state = State.START;
 								}
-							} else {
-								throw new LexicalException("Invalid character for Identifier");
+									break;
+								case "VAR": {
+									t = new Token(Kind.KW_VAR, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "PROCEDURE": {
+									t = new Token(Kind.KW_PROCEDURE, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "CALL": {
+									t = new Token(Kind.KW_CALL, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "BEGIN": {
+									t = new Token(Kind.KW_BEGIN, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "END": {
+									t = new Token(Kind.KW_END, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "IF": {
+									t = new Token(Kind.KW_IF, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "THEN": {
+									t = new Token(Kind.KW_THEN, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "WHILE": {
+									t = new Token(Kind.KW_WHILE, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "DO": {
+									t = new Token(Kind.KW_DO, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "TRUE": {
+									t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "FALSE": {
+									t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
+									state = State.START;
+								}
+									break;
+								default: {
+									t = new Token(Kind.IDENT, txt, line, column);
+									state = State.START;
+								}
+									break;
 							}
 						}
 					}
@@ -464,8 +476,9 @@ public class Lexer implements ILexer {
 			try {
 				switch (state) {
 					case START: {
-						line = currLine;
-						column = currColumn;
+						while (Character.isWhitespace(c)) {
+							c = r.read();
+						}
 						switch (c) {
 							case 0: {
 								c = r.read();
@@ -493,6 +506,10 @@ public class Lexer implements ILexer {
 								break;
 							case 41: {
 								t = new Token(Kind.RPAREN, ")", line, column);
+							}
+								break;
+							case 44: {
+								t = new Token(Kind.COMMA, ",", line, column);
 							}
 								break;
 							case 46: {
@@ -546,14 +563,24 @@ public class Lexer implements ILexer {
 							}
 								break;
 							default: {
-								if (Character.isJavaIdentifierStart(c)) {
+								if (Character.isDigit(c)) {
+									switch (c) {
+										case '0': {
+											t = new Token(Kind.NUM_LIT, "0", line, column);
+										}
+											break;
+										default: {
+											state = State.IN_NUM;
+											s = new StringBuilder();
+											s.append((char) c);
+										}
+											break;
+									}
+
+								} else if (Character.isJavaIdentifierStart(c)) {
 									state = State.IN_IDENT;
 									s = new StringBuilder();
 									s.append((char) c);
-								} else if (Character.isDigit(c)) {
-									state = State.IN_NUM;
-									s = new StringBuilder();
-
 								} else {
 									throw new LexicalException(
 											"Error while peeking, state: " + state + ", char: " + (char) c);
@@ -703,90 +730,89 @@ public class Lexer implements ILexer {
 						break;
 					case IN_IDENT: {
 						c = r.read();
+						System.out.println("Peek in IDENT: " + (char) c);
 						if (Character.isJavaIdentifierPart(c)) {
 							s.append((char) c);
-							c = r.read();
-						} else if (c == '\n') {
-							t = new Token(Kind.IDENT, s.toString(), line, column);
-							state = State.START;
-						} else if (c == 32) {
+							// c = r.read();
+						}
+						// } else if (c == '\n') {
+						// t = new Token(Kind.IDENT, s.toString(), line, column);
+						// state = State.START;
+						// } else if (c == 32) {
+						// String txt;
+						// txt = s.toString();
+						// t = new Token(Kind.IDENT, txt, line, column);
+						// state = State.START;
+						// } else {
+						else {
 							String txt;
 							txt = s.toString();
-							t = new Token(Kind.IDENT, txt, line, column);
-							state = State.START;
-						} else {
-							String txt;
-							txt = s.toString();
-							if (keyWords.contains(txt) || Bools.contains(txt)) {
-								switch (txt) {
-									case "CONST": {
-										t = new Token(Kind.KW_CONST, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "VAR": {
-										t = new Token(Kind.KW_VAR, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "PROCEDURE": {
-										t = new Token(Kind.KW_PROCEDURE, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "CALL": {
-										t = new Token(Kind.KW_CALL, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "BEGIN": {
-										t = new Token(Kind.KW_BEGIN, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "END": {
-										t = new Token(Kind.KW_END, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "IF": {
-										t = new Token(Kind.KW_IF, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "THEN": {
-										t = new Token(Kind.KW_THEN, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "WHILE": {
-										t = new Token(Kind.KW_WHILE, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "DO": {
-										t = new Token(Kind.KW_DO, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "TRUE": {
-										t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
-										state = State.START;
-									}
-										break;
-									case "FALSE": {
-										t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
-										state = State.START;
-									}
-										break;
-									default: {
-										t = new Token(Kind.IDENT, txt, line, column);
-										state = State.START;
-									}
-										break;
+							switch (txt) {
+								case "CONST": {
+									t = new Token(Kind.KW_CONST, txt, line, column);
+									state = State.START;
 								}
-							} else {
-								throw new LexicalException("Invalid character for Identifier");
+									break;
+								case "VAR": {
+									t = new Token(Kind.KW_VAR, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "PROCEDURE": {
+									t = new Token(Kind.KW_PROCEDURE, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "CALL": {
+									t = new Token(Kind.KW_CALL, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "BEGIN": {
+									t = new Token(Kind.KW_BEGIN, txt, currLine, currColumn);
+									state = State.START;
+								}
+									break;
+								case "END": {
+									t = new Token(Kind.KW_END, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "IF": {
+									t = new Token(Kind.KW_IF, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "THEN": {
+									t = new Token(Kind.KW_THEN, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "WHILE": {
+									t = new Token(Kind.KW_WHILE, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "DO": {
+									t = new Token(Kind.KW_DO, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "TRUE": {
+									t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
+									state = State.START;
+								}
+									break;
+								case "FALSE": {
+									t = new Token(Kind.BOOLEAN_LIT, txt, line, column);
+									state = State.START;
+								}
+									break;
+								default: {
+									t = new Token(Kind.IDENT, txt, currLine, currColumn);
+									state = State.START;
+								}
+									break;
 							}
 						}
 					}
