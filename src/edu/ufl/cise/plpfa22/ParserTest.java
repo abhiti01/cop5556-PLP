@@ -39,7 +39,7 @@ class ParserTest {
 	}
 
 	@Test
-//shortest legal program
+	// shortest legal program
 	void test0() throws PLPException {
 		String input = """
 				.""";
@@ -164,6 +164,33 @@ class ParserTest {
 		assertThat("", v2.get(0), instanceOf(VarDec.class));
 		IToken v3 = ((VarDec) v2.get(0)).ident;
 		assertEquals("abc", String.valueOf(v3.getText()));
+		List<ProcDec> v4 = ((Block) v0).procedureDecs;
+		assertEquals(0, v4.size());
+		Statement v5 = ((Block) v0).statement;
+		assertThat("", v5, instanceOf(StatementEmpty.class));
+	}
+
+	@Test
+	void myTest() throws PLPException {
+		String input = """
+				CONST abc = 5;
+				.
+				""";
+		ASTNode ast = getAST(input);
+		assertThat("", ast, instanceOf(Program.class));
+		Block v0 = ((Program) ast).block;
+		assertThat("", v0, instanceOf(Block.class));
+		List<ConstDec> v1 = ((Block) v0).constDecs;
+		assertEquals(1, v1.size());
+		assertThat("", v1.get(0), instanceOf(ConstDec.class));
+		List<VarDec> v2 = ((Block) v0).varDecs;
+		assertEquals(0, v2.size());
+		IToken v3 = ((ConstDec) v1.get(0)).ident;
+		// IToken v7 = ().val
+		// assertEquals(5, String.valueOf(v3.getText()));
+		assertEquals("abc", String.valueOf(v3.getText()));
+		// Integer v7 = (v1.get(0)).val;
+		// assertEquals(5, String.valueOf(v3.getText()));
 		List<ProcDec> v4 = ((Block) v0).procedureDecs;
 		assertEquals(0, v4.size());
 		Statement v5 = ((Block) v0).statement;
@@ -634,7 +661,7 @@ class ParserTest {
 	}
 
 	@Test
-//The error in this example should be found by the Lexer
+	// The error in this example should be found by the Lexer
 	void test15() throws PLPException {
 		String input = """
 				VAR @;
