@@ -174,6 +174,7 @@ class ParserTest {
 	void myTest() throws PLPException {
 		String input = """
 				CONST abc = 5;
+				VAR y;
 				.
 				""";
 		ASTNode ast = getAST(input);
@@ -184,7 +185,7 @@ class ParserTest {
 		assertEquals(1, v1.size());
 		assertThat("", v1.get(0), instanceOf(ConstDec.class));
 		List<VarDec> v2 = ((Block) v0).varDecs;
-		assertEquals(0, v2.size());
+		assertEquals(1, v2.size());
 		IToken v3 = ((ConstDec) v1.get(0)).ident;
 		// IToken v7 = ().val
 		// assertEquals(5, String.valueOf(v3.getText()));

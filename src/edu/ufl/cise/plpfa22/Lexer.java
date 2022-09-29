@@ -106,6 +106,7 @@ public class Lexer implements ILexer {
 								break;
 							case 44: {
 								t = new Token(Kind.COMMA, ",", line, column);
+								updateLocation();
 							}
 								break;
 							case 46: {
