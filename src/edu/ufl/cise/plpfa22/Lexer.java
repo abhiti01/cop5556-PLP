@@ -213,7 +213,7 @@ public class Lexer implements ILexer {
 							default: {
 								t = new Token(Kind.DIV, "/", line, column);
 								state = State.START;
-								updateLocation();
+								// updateLocation();
 							}
 						}
 
