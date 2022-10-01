@@ -1,8 +1,14 @@
 ./src/edu/ufl/cise/plpfa22/CompilerComponentFactory.java
 ./src/edu/ufl/cise/plpfa22/ILexer.java
+./src/edu/ufl/cise/plpfa22/IParser.java
 ./src/edu/ufl/cise/plpfa22/IToken.java
 ./src/edu/ufl/cise/plpfa22/Lexer.java
 ./src/edu/ufl/cise/plpfa22/LexerTest.java
 ./src/edu/ufl/cise/plpfa22/LexicalException.java
+./src/edu/ufl/cise/plpfa22/Parser.java
+./src/edu/ufl/cise/plpfa22/ParserTest.java
 ./src/edu/ufl/cise/plpfa22/PLPException.java
+./src/edu/ufl/cise/plpfa22/SyntaxException.java
 ./src/edu/ufl/cise/plpfa22/Token.java
+./src/edu/ufl/cise/plpfa22/ast
+
