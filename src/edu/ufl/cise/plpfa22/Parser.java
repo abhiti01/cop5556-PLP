@@ -11,7 +11,9 @@ import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
 import edu.ufl.cise.plpfa22.ast.Declaration;
 import edu.ufl.cise.plpfa22.ast.Statement;
+import edu.ufl.cise.plpfa22.ast.StatementAssign;
 import edu.ufl.cise.plpfa22.ast.StatementBlock;
+import edu.ufl.cise.plpfa22.ast.StatementCall;
 import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
@@ -20,8 +22,10 @@ import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.Ident;
 import edu.ufl.cise.plpfa22.ast.StatementEmpty;
+import edu.ufl.cise.plpfa22.ast.StatementIf;
 import edu.ufl.cise.plpfa22.ast.StatementInput;
 import edu.ufl.cise.plpfa22.ast.StatementOutput;
+import edu.ufl.cise.plpfa22.ast.StatementWhile;
 
 public class Parser implements IParser {
 
@@ -53,6 +57,7 @@ public class Parser implements IParser {
 
     private Block block() throws SyntaxException, LexicalException {
         IToken firstToken = this.token;
+        System.out.println("HERE FROM INSIDE PROC GOT TOKEN: "+token.getKind());
         List<ConstDec> constDecList = new ArrayList<ConstDec>();
         // List<ConstDec> constDecList;
         List<VarDec> varDecList = new ArrayList<VarDec>();
@@ -115,16 +120,31 @@ public class Parser implements IParser {
         // }   
         System.out.println("After CONST BLOCK "+token.getKind());
         while (isKind(token, Kind.KW_VAR)) {
+            // consume();
+            match(Kind.KW_VAR);
             VarDec varDec = varDec();
             varDecList.add(varDec);
+            System.out.println("GOt token after matching first var: "+token.getKind());
+            while (token.getKind()!=Kind.SEMI){
+                if (token.getKind() == Kind.COMMA){
+                    match(Kind.COMMA);
+                    VarDec varDec2 = varDec();
+                    varDecList.add(varDec2);
+                    System.out.println("After matching var got:" +token.getKind());
+                }
+            }
+            System.out.println("Token outside loop: "+token.getKind());
             match(Kind.SEMI);
+            System.out.println("Token outside loop after match: "+token.getKind());
         }
 
         while (isKind(token, Kind.KW_PROCEDURE)) {
-        ProcDec procDec = procDec();
-        procDecList.add(procDec);
-        match(Kind.SEMI);
+            System.out.println("INSide proc isKind");
+            ProcDec procDec = procDec();
+            procDecList.add(procDec);
+            // match(Kind.SEMI);
         }
+
         while (isKind(token, Kind.IDENT) || isKind(token, Kind.KW_CALL) ||
         isKind(token, Kind.QUESTION)
         || isKind(token, Kind.BANG) || isKind(token, Kind.KW_BEGIN) || isKind(token,
@@ -181,21 +201,33 @@ public class Parser implements IParser {
 
     }
 
-    private ProcDec procDec() {
-        return null;
+    private ProcDec procDec() throws SyntaxException, LexicalException {
+        System.out.println("INSIDE PROCDEC first token: "+token.getKind());
+        IToken firstToken = this.token;
+        match(Kind.KW_PROCEDURE);
+        System.out.println("INSIDE PROCDEC second token: "+token.getKind());
+        IToken name = this.token;
+        match(Kind.IDENT);
+        match(Kind.SEMI);
+        System.out.println("GOT TOKEN INSIDE PROCDEC BEFORE GOING TO BLOCK: "+token.getKind());
+        Block blockProc = block();
+        match(Kind.SEMI);
+        System.out.println("GOT TOKEN INSIDE PROC AFTER MATCHING SEMI: "+token.getKind());
+        return new ProcDec(firstToken,name, blockProc);
     }
 
     private VarDec varDec() throws SyntaxException, LexicalException {
         IToken firstToken = this.token;
-        System.out.println("Token kind before consume"+token.getKind());
-        IToken ident = consume();
-        System.out.println("Token kind after consume"+token.getKind());
+        // System.out.println("Token text before consume"+token.getStringValue());
+        // System.out.println("Token kind before consume"+token.getKind());
+        match(Kind.IDENT);
+        // System.out.println("Token kind after consume"+token.getKind());
         // match(Kind.IDENT);
         // match(Kind.EQ);
         // IToken nextToken = consume();
-        match(Kind.IDENT);
+        // match(Kind.IDENT);
         System.out.println("Token kind after match"+token.getKind());
-        return new VarDec(firstToken, ident);
+        return new VarDec(firstToken, firstToken);
     }
 
     private Statement statement() throws LexicalException, SyntaxException {
@@ -208,17 +240,21 @@ public class Parser implements IParser {
         // System.out.println(token.getText());
         switch (token.getKind()) {
             case IDENT: {
-                System.out.println("Unimplemented portion");
+                IToken identFirst = this.token;
+                Ident ident = new Ident(identFirst);
+                consume();
+                match(Kind.ASSIGN);
+                Expression expr = expression();
+                statement = new StatementAssign(firstToken, ident, expr);
             }
                 break;
             // add more statement cases here
-
             case BANG: {
                 IToken bang = consume();
                 System.out.println("Making expression from bang statement");
                 Expression expr = expression();
                 statement = new StatementOutput(firstToken, expr);
-                System.out.println("statement after creation bang "+statement);
+                System.out.println("token after creation bang "+token.getKind());
             }break;
             case KW_BEGIN: {
                 IToken begin = match(Kind.KW_BEGIN);
@@ -228,15 +264,19 @@ public class Parser implements IParser {
                 if (token.getKind() == Kind.SEMI){
                     match(Kind.SEMI);
                     while(token.getKind()!=Kind.KW_END){
-                        Statement stmt = statement();
-                        statementList.add(stmt);
+                        System.out.println("Inside begin got token (after matching semi)"+token.getKind());
+                        Statement statementTwo = statement();
+                        System.out.println("token after creation statement2 "+token.getKind());
+                        statementList.add(statementTwo);
                         if (token.getKind() == Kind.SEMI){
-                            consume();
+                            match(Kind.SEMI);
                         }
-                        // match(Kind.SEMI);
                     }
+                    System.out.println("token after while loop in beegin "+token.getKind());
+                    match(Kind.KW_END);
                 }
-                match(Kind.KW_END);
+                
+                
 
                 statement = new StatementBlock(firstToken, statementList);
             } break;
@@ -249,7 +289,35 @@ public class Parser implements IParser {
                 }
                 // match(Kind.Ident);
                 statement = new StatementInput(firstToken, ident);
-            }
+            } break;
+            case KW_CALL:{
+                IToken call = match(Kind.KW_CALL);
+                Ident ident = null;
+                if (token.getKind() == Kind.IDENT){
+                    ident = new Ident(this.token);
+                    consume();
+                }
+                statement = new StatementCall(firstToken, ident);
+            } break;
+            case KW_IF:{
+                System.out.println("In if statement got token"+ token.getKind());
+                firstToken = this.token;
+                match(Kind.KW_IF);
+                Expression ifExpr = expression();
+                match(Kind.KW_THEN);
+                Statement ifStatement = statement();
+                statement = new StatementIf(firstToken, ifExpr, ifStatement);
+                System.out.println("Token afrer creating if:" + token.getKind());
+            }break;
+            case KW_WHILE:{
+                System.out.println("In while statement got token"+ token.getKind());
+                firstToken = this.token;
+                match(Kind.KW_WHILE);
+                Expression whileExpression = expression();
+                match(Kind.KW_DO);
+                Statement whileStatement = statement();
+                statement = new StatementWhile(firstToken, whileExpression, whileStatement);
+            }break;
             // case DOT: {
             //     consume();
             //     System.out.println("IN CASE DOT INSIDE STATEMENT");
