@@ -8,9 +8,18 @@ import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.PLPException;
 
 public class ExpressionIdent extends Expression {
-	
+
 	Declaration dec;
-	
+	int nest;
+
+	public void setNest(int nest) {
+		this.nest = nest;
+	}
+
+	public int getNest() {
+		return nest;
+	}
+
 	public ExpressionIdent(IToken firstToken) {
 		super(firstToken);
 	}
@@ -20,7 +29,6 @@ public class ExpressionIdent extends Expression {
 		return v.visitExpressionIdent(this, arg);
 	}
 
-	
 	@Override
 	public String toString() {
 		return "ExpressionIdent [" + (dec != null ? "dec=" + dec + ", " : "")
@@ -28,16 +36,12 @@ public class ExpressionIdent extends Expression {
 				+ "]";
 	}
 
-
 	public Declaration getDec() {
 		return dec;
 	}
 
-
 	public void setDec(Declaration dec) {
 		this.dec = dec;
 	}
-	
-	
 
 }
