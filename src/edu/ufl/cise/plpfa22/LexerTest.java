@@ -18,7 +18,7 @@ class LexerTest {
 
 	// makes it easy to turn output on and off (and less typing than
 	// System.out.println)
-	static final boolean VERBOSE = true;
+	static final boolean VERBOSE = false;
 
 	void show(Object obj) {
 		if (VERBOSE) {

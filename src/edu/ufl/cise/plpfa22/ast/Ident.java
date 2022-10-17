@@ -35,14 +35,13 @@ public class Ident extends ASTNode {
 
 	@Override
 	public String toString() {
-		
+
 		return "Ident [dec=" + dec + ", firstToken=" + firstToken.getText() + "]";
 	}
 
 	public void setDec(Declaration dec) {
-		System.out.println("INSIDE SET DEC WITH" + dec);
 		if (dec == null) {
-			System.out.println("Got null inside setdec");
+			// System.out.println("Got null inside setdec");
 		}
 		this.dec = dec;
 	}

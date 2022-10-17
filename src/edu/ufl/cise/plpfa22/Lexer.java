@@ -731,7 +731,6 @@ public class Lexer implements ILexer {
 						break;
 					case IN_IDENT: {
 						c = r.read();
-						System.out.println("Peek in IDENT: " + (char) c);
 						if (Character.isJavaIdentifierPart(c)) {
 							s.append((char) c);
 							// c = r.read();

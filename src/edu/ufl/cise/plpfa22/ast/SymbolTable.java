@@ -10,6 +10,7 @@ public class SymbolTable {
     HashMap<String, ArrayList<SpecialStructureTBD>> hashing = new HashMap<String, ArrayList<SpecialStructureTBD>>();
     int currentScope;
     int nextScope;
+
     public SymbolTable() {
         this.scopeStack = new Stack<Integer>();
         this.hashing = new HashMap<String, ArrayList<SpecialStructureTBD>>();
@@ -17,6 +18,7 @@ public class SymbolTable {
         this.nextScope = 0;
         scopeStack.push(currentScope);
     }
+
     public int getCurrentScope() {
         return currentScope;
     }
@@ -24,19 +26,15 @@ public class SymbolTable {
     public void enterScope() {
         currentScope = nextScope;
         Random random = new Random();
-        nextScope = random.nextInt(99999999)+currentScope;
+        nextScope = random.nextInt(99999999) + currentScope;
         scopeStack.push(currentScope);
-        System.out.println(scopeStack);
-        System.out.println("curr scope"+ currentScope);
     }
 
     public void exitScope() {
         scopeStack.pop();
         currentScope = scopeStack.peek();
         Random random = new Random();
-        nextScope = random.nextInt(99999999)+currentScope;
-        System.out.println(scopeStack);
-        System.out.println("curr scope in exitscope"+ currentScope);
+        nextScope = random.nextInt(99999999) + currentScope;
     }
 
     public void pushDeclaration(String ident, Declaration dec) {
@@ -59,10 +57,10 @@ public class SymbolTable {
 
         Declaration dec = null;
         for (SpecialStructureTBD p : l) {
-            if (p.getScope() == currentScope && scopeStack.contains(p.getScope())){
+            if (p.getScope() == currentScope && scopeStack.contains(p.getScope())) {
                 dec = p.getDecVal();
             }
-            if (p.getScope()<currentScope && scopeStack.contains(p.getScope())){
+            if (p.getScope() < currentScope && scopeStack.contains(p.getScope())) {
                 dec = p.getDecVal();
             }
         }
@@ -86,6 +84,7 @@ public class SymbolTable {
     class SpecialStructureTBD {
         int scope;
         Declaration dec;
+
         public SpecialStructureTBD(int scope, Declaration dec) {
             this.scope = scope;
             this.dec = dec;
@@ -94,6 +93,7 @@ public class SymbolTable {
         public int getScope() {
             return scope;
         }
+
         public Declaration getDecVal() {
             return dec;
         }
