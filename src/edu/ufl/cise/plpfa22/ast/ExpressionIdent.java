@@ -31,9 +31,11 @@ public class ExpressionIdent extends Expression {
 
 	@Override
 	public String toString() {
-		return "ExpressionIdent [" + (dec != null ? "dec=" + dec + ", " : "")
-				+ (type != null ? "type=" + type + ", " : "") + (firstToken != null ? "firstToken=" + firstToken : "")
-				+ "]";
+		System.out.println("Inside eepression ident ");
+		return firstToken.getText().toString();
+		// return "ExpressionIdent [" + (dec != null ? "dec=" + dec + ", " : "")
+		// 		+ (type != null ? "type=" + type + ", " : "") + (firstToken != null ? "firstToken=" + firstToken : "")
+		// 		+ "]";
 	}
 
 	public Declaration getDec() {

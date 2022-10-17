@@ -245,6 +245,7 @@ public class Parser implements IParser {
     private Expression expression() throws LexicalException, SyntaxException {
 
         IToken firstToken = this.token;
+        System.out.println("INSIDE EXPRESSION PARSER WITH FIRSTTOKEN"+firstToken.getKind());
         Expression expression = null;
         IToken op = null;
         Expression nextExpr = null;

@@ -26,7 +26,9 @@ public class Token implements IToken {
 		return results.toCharArray();
 
 	}
-
+	public String getString(){
+		return text;
+	}
 	public static String unEscapeString(String s) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < s.length(); i++)

@@ -35,7 +35,8 @@ public class Ident extends ASTNode {
 
 	@Override
 	public String toString() {
-		return "Ident [dec=" + dec + ", firstToken=" + firstToken + "]";
+		
+		return "Ident [dec=" + dec + ", firstToken=" + firstToken.getText() + "]";
 	}
 
 	public void setDec(Declaration dec) {
