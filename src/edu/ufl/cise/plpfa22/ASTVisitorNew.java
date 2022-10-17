@@ -1,15 +1,8 @@
 package edu.ufl.cise.plpfa22;
-
-import org.hamcrest.core.IsInstanceOf;
-
-// import apple.laf.JRSUIConstants.State;
 import edu.ufl.cise.plpfa22.IToken.Kind;
-import edu.ufl.cise.plpfa22.ast.ASTNode;
-import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
 import edu.ufl.cise.plpfa22.ast.Declaration;
-import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
@@ -36,7 +29,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     int nestLevel= 0;
     @Override
     public Object visitBlock(Block block, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (block != null) {
             if (block.constDecs.size() != 0) {
                 for (int i = 0; i < block.constDecs.size(); i++) {
@@ -57,7 +49,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     
                 }
             }
-            // if (block.statement!=null)
             visitStatement(block.statement, null);
            
         } else {
@@ -68,11 +59,9 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         symboltable.enterScope();
         if (program != null) {
             visitBlock(program.block, arg);
-            // return program here?
         }
         symboltable.exitScope();
 
@@ -121,7 +110,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (varDec != null) {
             varDec.setNest(nestLevel);
             return visitIdent(new Ident(varDec.ident), varDec);
@@ -131,22 +119,18 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         visitIdent((Ident)statementCall.ident,null);
         return null;
     }
 
     @Override
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
-        // Ident ident = statementInput.ident;
         visitIdent((Ident)statementInput.ident, null);
         return null;
     }
 
     @Override
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (statementOutput.expression instanceof ExpressionIdent) {
             visitExpressionIdent((ExpressionIdent) statementOutput.expression, null);
         }
@@ -168,7 +152,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (statementIf.expression instanceof ExpressionIdent) {
             visitExpressionIdent((ExpressionIdent) statementIf.expression, null);
         }
@@ -181,7 +164,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (statementWhile.expression instanceof ExpressionIdent) {
             visitExpressionIdent((ExpressionIdent) statementWhile.expression, null);
         }
@@ -194,7 +176,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (expressionBinary.e0 instanceof ExpressionIdent) {
             visitExpressionIdent((ExpressionIdent) expressionBinary.e0, null);
         }
@@ -213,8 +194,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
-        // System.out.println(expressionIdent.getFirstToken().getText().toString() +);
         Token tempToken = (Token) expressionIdent.getFirstToken();
         if (symboltable.lookup(tempToken.getString())!=null) {
             System.out.println("Setting dec of ExpressionIdent: "+ tempToken.getString()+"as: "+symboltable.lookup(tempToken.getString()));
@@ -225,14 +204,12 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
         }
         else{
             throw new ScopeException("Ident used before declaration"+tempToken.getString());
-            // System.out.println("Doesn't exist");
         }
         return null;
     }
 
     @Override
     public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (expressionNumLit != null && expressionNumLit.getFirstToken().getKind() == Kind.NUM_LIT) {
             return expressionNumLit.getFirstToken().getIntValue();
         }
@@ -241,7 +218,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (expressionStringLit != null && expressionStringLit.getFirstToken().getKind() == Kind.STRING_LIT) {
             return expressionStringLit.getFirstToken().getStringValue();
         }
@@ -250,7 +226,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (expressionBooleanLit != null && expressionBooleanLit.getFirstToken().getKind() == Kind.BOOLEAN_LIT) {
             return expressionBooleanLit.getFirstToken().getBooleanValue();
         }
@@ -259,9 +234,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
-
-        
         if (arg == "one"){
             System.out.println("visiting proc for first time");
             visitIdent(new Ident(procDec.ident), procDec);
@@ -271,13 +243,10 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             System.out.println("visiting proc for second time");
             symboltable.enterScope();
             nestLevel++;
-            // symboltable.setScopeId(symboltable.getScopeId()+1);
             System.out.println("Current scopre after enter scope "+symboltable.getCurrentScope());
-            // symboltable.pushDeclaration(procDec.ident.getText().toString(), procDec);
             visitBlock(procDec.block, null);
             symboltable.exitScope();
             nestLevel--;
-            // symboltable.setScopeId(symboltable.getScopeId()-1);
             System.out.println("Current scopre after exiting scope  "+symboltable.getCurrentScope());
         }
         System.out.println("Current scope in visitProcedure:"+symboltable.getCurrentScope());
@@ -287,7 +256,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (constDec != null) {
             constDec.setNest(nestLevel);
             return visitIdent(new Ident(constDec.ident), constDec);
@@ -297,16 +265,11 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementEmpty(StatementEmpty statementEmpty, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
-        // Declaration dec = look up declaration of name in symbol table.
-        // if dec is null, this identifier has not been declared in scope so throw an
-        // exception
         Token tempToken = (Token) ident.getFirstToken();
         System.out.println("Inside visitIdent with: "+tempToken.getString());
 
@@ -333,14 +296,4 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
         return null;
     }
-
-    // public Object visit(ASTVisitorNew v, Object arg) throws PLPException {
-    //     // TODO Auto-generated method stub
-    //     System.out.println("inside visit");
-    //     visitProgram(null, "one");
-    //     System.out.println("Called visit program once");
-    //     return  visitProgram(null, "two");
-    //     // return visitProgram(null, arg);
-    // }
-
 }
