@@ -19,5 +19,7 @@ public class CompilerComponentFactory {
 	public static ASTVisitor getScopeVisitor() throws ScopeException {
 		return new ASTVisitorNew();
 	}
-
+	public static ASTVisitor getTypeInferenceVisitor() throws TypeCheckException{
+		return new TypeChecker();
+	}
 }
