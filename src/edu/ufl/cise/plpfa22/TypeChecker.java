@@ -28,56 +28,89 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLPException {
+        int changesInPrevRun = 0;
+        Boolean flag = true;
+        Boolean debug = false;
+        while (flag) {
+            int changesInThisRun = 0;
+            if (block.constDecs.size() != 0) {
+                for (int i = 0; i < block.constDecs.size(); i++) {
+                    changesInThisRun = changesInThisRun + (Integer) visitConstDec(block.constDecs.get(i), debug);
+                }
+            }
+            if (block.varDecs.size() != 0) {
+                for (int i = 0; i < block.varDecs.size(); i++) {
+                    visitVarDec(block.varDecs.get(i), debug);
+                }
+            }
+            // TODO Auto-generated method stub
+            if (block.procedureDecs.size() != 0) {
+                for (int i = 0; i < block.procedureDecs.size(); i++) {
+                    changesInThisRun = changesInThisRun + (Integer) visitProcedure(block.procedureDecs.get(i), debug);
+                }
 
-        if (block.constDecs.size() != 0) {
-            for (int i = 0; i < block.constDecs.size(); i++) {
-                visitConstDec(block.constDecs.get(i), null);
+            }
+            visitStatement(block.statement, debug);
+            // System.out.println("done with a run got count: " + changesInThisRun);
+            if (changesInThisRun == 0 || changesInPrevRun == changesInThisRun) {
+                flag = false;
+                debug = true;
+            } else {
+                changesInPrevRun = changesInThisRun;
             }
         }
-        if (block.varDecs.size() != 0) {
-            for (int i = 0; i < block.varDecs.size(); i++) {
-                visitVarDec(block.varDecs.get(i), arg);
+        if (arg == null) {
+            if (block.constDecs.size() != 0) {
+                for (int i = 0; i < block.constDecs.size(); i++) {
+                    visitConstDec(block.constDecs.get(i), debug);
+                }
             }
-        }
-        // TODO Auto-generated method stub
-        if (block.procedureDecs.size() != 0) {
-            for (int i = 0; i < block.procedureDecs.size(); i++) {
-                visitProcedure(block.procedureDecs.get(i), null);
+            if (block.varDecs.size() != 0) {
+                for (int i = 0; i < block.varDecs.size(); i++) {
+                    visitVarDec(block.varDecs.get(i), debug);
+                }
             }
+            // TODO Auto-generated method stub
+            if (block.procedureDecs.size() != 0) {
+                for (int i = 0; i < block.procedureDecs.size(); i++) {
+                    visitProcedure(block.procedureDecs.get(i), debug);
+                }
 
+            }
+            visitStatement(block.statement, debug);
         }
-        visitStatement(block.statement, null);
         return null;
     }
 
     public Object visitStatement(Statement s, Object arg) throws PLPException {
+        int count = 0;
         if (s != null) {
             if (s instanceof StatementAssign) {
-                visitStatementAssign((StatementAssign) s, arg);
+                count += (Integer) visitStatementAssign((StatementAssign) s, arg);
             } else if (s instanceof StatementInput) {
                 visitStatementInput((StatementInput) s, arg);
             } else if (s instanceof StatementOutput) {
                 visitStatementOutput((StatementOutput) s, arg);
             } else if (s instanceof StatementBlock) {
-                visitStatementBlock((StatementBlock) s, arg);
+                count += (Integer) visitStatementBlock((StatementBlock) s, arg);
             } else if (s instanceof StatementIf) {
-                visitStatementIf((StatementIf) s, arg);
+                count += (Integer) visitStatementIf((StatementIf) s, arg);
             } else if (s instanceof StatementCall) {
                 visitStatementCall((StatementCall) s, arg);
             } else if (s instanceof StatementWhile) {
-                visitStatementWhile((StatementWhile) s, arg);
+                count += (Integer) visitStatementWhile((StatementWhile) s, arg);
             } else {
-                visitStatementEmpty((StatementEmpty) s, null);
+                visitStatementEmpty((StatementEmpty) s, arg);
             }
         }
-        return null;
+        return count;
     }
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         if (program != null) {
-            visitBlock(program.block, arg);
+            visitBlock(program.block, null);
         }
         return null;
     }
@@ -85,21 +118,25 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         // TODO Auto-generated method stub
+        int count = 0;
         if (statementAssign.expression != null) {
-            if (statementAssign.ident.getDec() instanceof ConstDec
-                    || statementAssign.ident.getDec() instanceof ProcDec) {
+            if ((statementAssign.ident.getDec() instanceof ConstDec
+                    || statementAssign.ident.getDec() instanceof ProcDec) && (Boolean) arg) {
                 throw new TypeCheckException("cannot reassign const");
             }
-            visitExpression(statementAssign.expression, null);
+            count += (Integer) visitExpression(statementAssign.expression, arg);
             Type rhsType = statementAssign.expression.getType();
             if (statementAssign.ident.getDec().getType() == null) {
                 statementAssign.ident.getDec().setType(rhsType);
-            } else if (statementAssign.ident.getDec().getType() != rhsType) {
+                ++count;
+            } else if (rhsType == null && statementAssign.ident.getDec().getType() != null) {
+                statementAssign.expression.setType(statementAssign.ident.getDec().getType());
+            } else if (statementAssign.ident.getDec().getType() != rhsType && (Boolean) arg) {
                 throw new TypeCheckException("Type mismatch in assignment");
             }
         }
-
-        return null;
+        // System.out.println("completed statement assign got count " + count);
+        return count;
     }
 
     @Override
@@ -112,9 +149,13 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        System.out.println("Inside visitStatementCall");
-        visitIdent(statementCall.ident, null);
-        if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
+        visitIdent(statementCall.ident, arg);
+        // System.out.println("Inside visit statement call got ident:" +
+        // statementCall.ident.getFirstToken()
+        // + "with type: " + statementCall.ident
+        // .getDec().getType()
+        // + " Debug is set to:" + (Boolean) arg);
+        if (statementCall.ident.getDec().getType() != Type.PROCEDURE && (Boolean) arg) {
             throw new TypeCheckException("Calling a non-procedure ident");
         }
         return null;
@@ -123,9 +164,9 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        visitIdent(statementInput.ident, null);
-        if (statementInput.ident.getDec().getType() == Type.PROCEDURE
-                || statementInput.ident.getDec().getType() == null) {
+        visitIdent(statementInput.ident, arg);
+        if ((statementInput.ident.getDec().getType() == Type.PROCEDURE
+                || statementInput.ident.getDec().getType() == null) && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementInput, should be Num, String or Bool");
         }
         return null;
@@ -135,8 +176,9 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        visitExpression(statementOutput.expression, null);
-        if (statementOutput.expression.getType() == Type.PROCEDURE || statementOutput.expression.getType() == null) {
+        visitExpression(statementOutput.expression, arg);
+        if ((statementOutput.expression.getType() == Type.PROCEDURE || statementOutput.expression.getType() == null)
+                && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementInput, should be Num, String or Bool");
         }
         return null;
@@ -144,123 +186,171 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
+        int count = 0;
         // TODO Auto-generated method stub
         if (statementBlock.statements.size() != 0) {
             for (int i = 0; i < statementBlock.statements.size(); i++) {
-                visitStatement(statementBlock.statements.get(i), null);
+                count += (Integer) visitStatement(statementBlock.statements.get(i), arg);
             }
         }
-        return null;
+        return count;
     }
 
     @Override
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         // statement must be correctly typed, check for that here?
-        visitExpression(statementIf.expression, null);
-        if (statementIf.expression.getType() != Type.BOOLEAN) {
+        // System.out.println("Inside statementIf, got expression: " +
+        // statementIf.expression);
+        int count = 0;
+        count += (Integer) visitExpression(statementIf.expression, arg);
+        if (statementIf.expression.getType() != Type.BOOLEAN && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementIf, should be Boolean");
         }
-        visitStatement(statementIf.statement, null);
-        return null;
+        count += (Integer) visitStatement(statementIf.statement, arg);
+        return count;
     }
 
     @Override
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        visitExpression(statementWhile.expression, null);
-        if (statementWhile.expression.getType() != Type.BOOLEAN) {
+        int count = 0;
+        count += (Integer) visitExpression(statementWhile.expression, arg);
+        // System.out.println("visited while expr, type set to:" +
+        // statementWhile.expression.getType());
+        if (statementWhile.expression.getType() != Type.BOOLEAN && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementWhile, should be Boolean");
         }
-        visitStatement(statementWhile.statement, null);
-        return null;
+        count += (Integer) visitStatement(statementWhile.statement, arg);
+        return count;
     }
 
     public Object visitExpression(Expression expression, Object arg) throws PLPException {
+        int count = 0;
         if (expression != null) {
             if (expression instanceof ExpressionNumLit) {
-                visitExpressionNumLit((ExpressionNumLit) expression, null);
+                count += (Integer) visitExpressionNumLit((ExpressionNumLit) expression, arg);
             }
             if (expression instanceof ExpressionStringLit) {
-                visitExpressionStringLit((ExpressionStringLit) expression, null);
+                count += (Integer) visitExpressionStringLit((ExpressionStringLit) expression, arg);
             }
             if (expression instanceof ExpressionBooleanLit) {
-                visitExpressionBooleanLit((ExpressionBooleanLit) expression, null);
+                count += (Integer) visitExpressionBooleanLit((ExpressionBooleanLit) expression, arg);
             }
             if (expression instanceof ExpressionIdent) {
-                visitExpressionIdent((ExpressionIdent) expression, null);
+                count += (Integer) visitExpressionIdent((ExpressionIdent) expression, arg);
             }
             if (expression instanceof ExpressionBinary) {
-                visitExpressionBinary((ExpressionBinary) expression, null);
+                count += (Integer) visitExpressionBinary((ExpressionBinary) expression, arg);
             }
         }
-        return null;
+        return count;
     }
 
     @Override
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
         // TODO Auto-generated method stub
+        int count = 0;
         switch (expressionBinary.op.getKind()) {
             case PLUS: {
-                visitExpression(expressionBinary.e0, null);
-                visitExpression(expressionBinary.e1, null);
+                System.out.println("IN CASE PLUS, SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
+                        + expressionBinary.e1.getType() + expressionBinary.e0.toString()
+                        + expressionBinary.e1.toString());
+                count += (Integer) visitExpression(expressionBinary.e0, arg);
+                count += (Integer) visitExpression(expressionBinary.e1, arg);
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
                     expressionBinary.setType(Type.NUMBER);
+                    ++count;
                 } else if (expressionBinary.e0.getType() == Type.STRING
                         && expressionBinary.e1.getType() == Type.STRING) {
                     expressionBinary.setType(Type.STRING);
+                    ++count;
                 } else if (expressionBinary.e0.getType() == Type.BOOLEAN
                         && expressionBinary.e1.getType() == Type.BOOLEAN) {
-                    expressionBinary.setType(Type.STRING);
+                    expressionBinary.setType(Type.BOOLEAN);
+                    ++count;
                 } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
-                    // visitExpressionBinary(expressionBinary, arg);
+                    expressionBinary.setType(expressionBinary.e1.getType());
+                    ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    expressionBinary.setType(expressionBinary.e0.getType());
+                    ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else {
-                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                    if ((Boolean) arg)
+                        throw new TypeCheckException(
+                                "Invalid type for ExpressionBinary PLUS, unequal types of e0 and e1 at "
+                                        + expressionBinary.e0.getSourceLocation() + " "
+                                        + expressionBinary.e1.getSourceLocation());
                 }
             }
                 break;
             case MINUS:
             case DIV:
             case MOD: {
-                visitExpression(expressionBinary.e0, null);
-                visitExpression(expressionBinary.e1, null);
+                count += (Integer) visitExpression(expressionBinary.e0, arg);
+                count += (Integer) visitExpression(expressionBinary.e1, arg);
+                System.out.println(
+                        "IN CASE MINUS DIV MOD, SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
+                                + expressionBinary.e1.getType());
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
                     expressionBinary.setType(Type.NUMBER);
+                    ++count;
                 }
                 // unsure if these statements go here
                 else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    expressionBinary.setType(expressionBinary.e1.getType());
+                    ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    expressionBinary.setType(expressionBinary.e0.getType());
+                    ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else {
-                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                    if ((Boolean) arg)
+                        throw new TypeCheckException(
+                                "Invalid type for ExpressionBinary MINUS DIV MOD, unequal types of e0 and e1 at "
+                                        + expressionBinary.e0.getSourceLocation() + " "
+                                        + expressionBinary.e1.getSourceLocation());
                 }
             }
                 break;
             case TIMES: {
-                visitExpression(expressionBinary.e0, null);
-                visitExpression(expressionBinary.e1, null);
+                // add ccase to throw error if e0 or e1 is string
+                count += (Integer) visitExpression(expressionBinary.e0, arg);
+                count += (Integer) visitExpression(expressionBinary.e1, arg);
+                System.out.println(
+                        "IN CASE TIMES SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
+                                + expressionBinary.e1.getType());
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
                     expressionBinary.setType(Type.NUMBER);
+                    ++count;
                 } else if (expressionBinary.e0.getType() == Type.BOOLEAN
                         && expressionBinary.e1.getType() == Type.BOOLEAN) {
-                    expressionBinary.setType(Type.STRING);
+                    expressionBinary.setType(Type.BOOLEAN);
+                    ++count;
                 }
                 // unsure if these statements go here
                 else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    expressionBinary.setType(expressionBinary.e1.getType());
+                    ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    expressionBinary.setType(expressionBinary.e0.getType());
+                    ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else {
-                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                    if ((Boolean) arg)
+                        throw new TypeCheckException(
+                                "Invalid type for ExpressionBinary TIMES, unequal types of e0 and e1 at "
+                                        + expressionBinary.e0.getSourceLocation() + " "
+                                        + expressionBinary.e1.getSourceLocation());
                 }
             }
                 break;
@@ -270,85 +360,135 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             case GT:
             case LE:
             case GE: {
-                visitExpression(expressionBinary.e0, null);
-                visitExpression(expressionBinary.e1, null);
-                if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
+                count += (Integer) visitExpression(expressionBinary.e0, arg);
+                count += (Integer) visitExpression(expressionBinary.e1, arg);
+                System.out.println(
+                        "IN CASE EQ,NEQ,LT SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
+                                + expressionBinary.e1.getType());
+                if ((expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER)
+                        || (expressionBinary.e0
+                                .getType() == Type.STRING
+                                && expressionBinary.e1.getType() == Type.STRING)
+                        || (expressionBinary.e0.getType() == Type.BOOLEAN
+                                && expressionBinary.e1.getType() == Type.BOOLEAN)) {
                     expressionBinary.setType(Type.BOOLEAN);
-                } else if (expressionBinary.e0.getType() == Type.STRING
-                        && expressionBinary.e1.getType() == Type.STRING) {
-                    expressionBinary.setType(Type.BOOLEAN);
-                } else if (expressionBinary.e0.getType() == Type.BOOLEAN
-                        && expressionBinary.e1.getType() == Type.BOOLEAN) {
-                    expressionBinary.setType(Type.BOOLEAN);
-                }
-                // unsure if these statements go here
-                else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                    ++count;
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
-                    // visitExpressionBinary(expressionBinary, arg);
+                    expressionBinary.setType(Type.BOOLEAN);
+                    ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
-                    // visitExpressionBinary(expressionBinary, arg);
+                    expressionBinary.setType(Type.BOOLEAN);
+                    ++count;
                 } else {
-                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                    if ((boolean) arg)
+                        throw new TypeCheckException(
+                                "Invalid type for ExpressionBinary EQ NEQ, unequal types of e0 and e1 at "
+                                        + expressionBinary.e0.getSourceLocation() + " "
+                                        + expressionBinary.e1.getSourceLocation());
                 }
             }
                 break;
             default:
-                throw new TypeCheckException(
-                        "Invalid op for ExpressionBinary, should be PLUS, MINUS, TIMES, DIV, MOD, EQ, NEQ, LT, GT, LE, GE");
+                if ((Boolean) arg)
+                    throw new TypeCheckException(
+                            "Invalid op for ExpressionBinary, should be PLUS, MINUS, TIMES, DIV, MOD, EQ, NEQ, LT, GT, LE, GE");
         }
-        return null;
+        return count;
     }
 
     @Override
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        expressionIdent.setType(expressionIdent.getDec().getType());
-        return null;
+        int count = 0;
+        if (expressionIdent.getType() == null) {
+            expressionIdent.setType(expressionIdent.getDec().getType());
+            ++count;
+        }
+
+        return count;
     }
 
     @Override
     public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        expressionNumLit.setType(Type.NUMBER);
-        return null;
+        int count = 0;
+        if (expressionNumLit.getType() == null) {
+            expressionNumLit.setType(Type.NUMBER);
+            ++count;
+        }
+
+        return count;
     }
 
     @Override
     public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        expressionStringLit.setType(Type.STRING);
-        return null;
+        int count = 0;
+        if (expressionStringLit.getType() == null) {
+            expressionStringLit.setType(Type.STRING);
+            ++count;
+        }
+
+        return count;
     }
 
     @Override
     public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        expressionBooleanLit.setType(Type.BOOLEAN);
-        return null;
+        int count = 0;
+        if (expressionBooleanLit.getType() == null) {
+            expressionBooleanLit.setType(Type.BOOLEAN);
+            ++count;
+        }
+        return count;
     }
 
     @Override
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
+        int count = 0;
         // TODO Auto-generated method stub
-        procDec.setType(Type.PROCEDURE);
-        visitBlock(procDec.block, null);
-        return null;
+        if (procDec.getType() == null) {
+            procDec.setType(Type.PROCEDURE);
+            ++count;
+        }
+        if ((Boolean) arg) {
+            visitBlock(procDec.block, null);
+        } else {
+            visitBlock(procDec.block, "debug");
+        }
+
+        return count;
     }
 
     @Override
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-        System.out.println("In visitConstdec");
-        System.out.println("got value: " + constDec.val);
+        int count = 0;
+
+        // System.out.println("In visitConstdec");
+        // System.out.println("got value: " + constDec.val);
         // TODO Auto-generated method stub
         Object gotVal = constDec.val;
-        if (gotVal instanceof Integer)
-            constDec.setType(Type.NUMBER);
-        if (gotVal instanceof String)
-            constDec.setType(Type.STRING);
-        if (gotVal instanceof Boolean)
-            constDec.setType(Type.BOOLEAN);
-        return null;
+        if (constDec.getType() == null) {
+            if (gotVal instanceof Integer) {
+                constDec.setType(Type.NUMBER);
+                count += 1;
+            }
+
+            if (gotVal instanceof String) {
+                constDec.setType(Type.STRING);
+                count += 1;
+            }
+
+            if (gotVal instanceof Boolean) {
+                constDec.setType(Type.BOOLEAN);
+                count += 1;
+            }
+
+        }
+
+        return count;
     }
 
     @Override
