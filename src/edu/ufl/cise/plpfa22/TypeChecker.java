@@ -24,31 +24,32 @@ import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.VarDec;
 import edu.ufl.cise.plpfa22.ast.Types.Type;
 
-public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
+public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLPException {
 
-        if (block.constDecs.size()!=0){
-            for(int i=0;i<block.constDecs.size();i++){
+        if (block.constDecs.size() != 0) {
+            for (int i = 0; i < block.constDecs.size(); i++) {
                 visitConstDec(block.constDecs.get(i), null);
             }
         }
-        if (block.varDecs.size()!= 0){
-            for (int i =0; i<block.varDecs.size();i++){
+        if (block.varDecs.size() != 0) {
+            for (int i = 0; i < block.varDecs.size(); i++) {
                 visitVarDec(block.varDecs.get(i), arg);
             }
         }
         // TODO Auto-generated method stub
-        if(block.procedureDecs.size()!=0){
-            for(int i=0;i<block.procedureDecs.size();i++){
-                visitProcedure(block.procedureDecs.get(i),null);
+        if (block.procedureDecs.size() != 0) {
+            for (int i = 0; i < block.procedureDecs.size(); i++) {
+                visitProcedure(block.procedureDecs.get(i), null);
             }
-        
+
         }
         visitStatement(block.statement, null);
         return null;
     }
+
     public Object visitStatement(Statement s, Object arg) throws PLPException {
         if (s != null) {
             if (s instanceof StatementAssign) {
@@ -71,6 +72,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
         }
         return null;
     }
+
     @Override
     public Object visitProgram(Program program, Object arg) throws PLPException {
         // TODO Auto-generated method stub
@@ -83,13 +85,16 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     @Override
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        if (statementAssign.expression!=null){
+        if (statementAssign.expression != null) {
+            if (statementAssign.ident.getDec() instanceof ConstDec
+                    || statementAssign.ident.getDec() instanceof ProcDec) {
+                throw new TypeCheckException("cannot reassign const");
+            }
             visitExpression(statementAssign.expression, null);
             Type rhsType = statementAssign.expression.getType();
-            if (statementAssign.ident.getDec().getType() == null){
+            if (statementAssign.ident.getDec().getType() == null) {
                 statementAssign.ident.getDec().setType(rhsType);
-            }
-            else if (statementAssign.ident.getDec().getType() != rhsType){
+            } else if (statementAssign.ident.getDec().getType() != rhsType) {
                 throw new TypeCheckException("Type mismatch in assignment");
             }
         }
@@ -100,7 +105,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     @Override
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        
+
         return null;
     }
 
@@ -109,7 +114,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
         // TODO Auto-generated method stub
         System.out.println("Inside visitStatementCall");
         visitIdent(statementCall.ident, null);
-        if (statementCall.ident.getDec().getType()!=Type.PROCEDURE){
+        if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
             throw new TypeCheckException("Calling a non-procedure ident");
         }
         return null;
@@ -119,7 +124,8 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         visitIdent(statementInput.ident, null);
-        if (statementInput.ident.getDec().getType()==Type.PROCEDURE || statementInput.ident.getDec().getType() == null){
+        if (statementInput.ident.getDec().getType() == Type.PROCEDURE
+                || statementInput.ident.getDec().getType() == null) {
             throw new TypeCheckException("Invalid type for StatementInput, should be Num, String or Bool");
         }
         return null;
@@ -130,7 +136,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         visitExpression(statementOutput.expression, null);
-        if (statementOutput.expression.getType()==Type.PROCEDURE || statementOutput.expression.getType() == null){
+        if (statementOutput.expression.getType() == Type.PROCEDURE || statementOutput.expression.getType() == null) {
             throw new TypeCheckException("Invalid type for StatementInput, should be Num, String or Bool");
         }
         return null;
@@ -139,8 +145,8 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     @Override
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        if(statementBlock.statements.size()!=0){
-            for(int i=0;i<statementBlock.statements.size();i++){
+        if (statementBlock.statements.size() != 0) {
+            for (int i = 0; i < statementBlock.statements.size(); i++) {
                 visitStatement(statementBlock.statements.get(i), null);
             }
         }
@@ -150,9 +156,9 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     @Override
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        //statement must be correctly typed, check for that here?
+        // statement must be correctly typed, check for that here?
         visitExpression(statementIf.expression, null);
-        if(statementIf.expression.getType()!=Type.BOOLEAN){
+        if (statementIf.expression.getType() != Type.BOOLEAN) {
             throw new TypeCheckException("Invalid type for StatementIf, should be Boolean");
         }
         visitStatement(statementIf.statement, null);
@@ -163,7 +169,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         visitExpression(statementWhile.expression, null);
-        if(statementWhile.expression.getType()!=Type.BOOLEAN){
+        if (statementWhile.expression.getType() != Type.BOOLEAN) {
             throw new TypeCheckException("Invalid type for StatementWhile, should be Boolean");
         }
         visitStatement(statementWhile.statement, null);
@@ -172,20 +178,20 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
 
     public Object visitExpression(Expression expression, Object arg) throws PLPException {
         if (expression != null) {
-            if (expression instanceof ExpressionNumLit){
-                visitExpressionNumLit((ExpressionNumLit)expression, null);
+            if (expression instanceof ExpressionNumLit) {
+                visitExpressionNumLit((ExpressionNumLit) expression, null);
             }
-            if (expression instanceof ExpressionStringLit){
-                visitExpressionStringLit((ExpressionStringLit)expression, null);
+            if (expression instanceof ExpressionStringLit) {
+                visitExpressionStringLit((ExpressionStringLit) expression, null);
             }
-            if (expression instanceof ExpressionBooleanLit){
-                visitExpressionBooleanLit((ExpressionBooleanLit)expression, null);
+            if (expression instanceof ExpressionBooleanLit) {
+                visitExpressionBooleanLit((ExpressionBooleanLit) expression, null);
             }
-            if (expression instanceof ExpressionIdent){
-                visitExpressionIdent((ExpressionIdent)expression, null);
+            if (expression instanceof ExpressionIdent) {
+                visitExpressionIdent((ExpressionIdent) expression, null);
             }
-            if (expression instanceof ExpressionBinary){
-                visitExpressionBinary((ExpressionBinary)expression, null);
+            if (expression instanceof ExpressionBinary) {
+                visitExpressionBinary((ExpressionBinary) expression, null);
             }
         }
         return null;
@@ -194,110 +200,102 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     @Override
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
         // TODO Auto-generated method stub
-        switch(expressionBinary.op.getKind()){
-        case PLUS:{
-            visitExpression(expressionBinary.e0, null);
-            visitExpression(expressionBinary.e1, null);
-            if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER){
-                expressionBinary.setType(Type.NUMBER);
+        switch (expressionBinary.op.getKind()) {
+            case PLUS: {
+                visitExpression(expressionBinary.e0, null);
+                visitExpression(expressionBinary.e1, null);
+                if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
+                    expressionBinary.setType(Type.NUMBER);
+                } else if (expressionBinary.e0.getType() == Type.STRING
+                        && expressionBinary.e1.getType() == Type.STRING) {
+                    expressionBinary.setType(Type.STRING);
+                } else if (expressionBinary.e0.getType() == Type.BOOLEAN
+                        && expressionBinary.e1.getType() == Type.BOOLEAN) {
+                    expressionBinary.setType(Type.STRING);
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                    expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
+                    expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else {
+                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                }
             }
-            else if (expressionBinary.e0.getType() == Type.STRING && expressionBinary.e1.getType() == Type.STRING){
-                expressionBinary.setType(Type.STRING);
+                break;
+            case MINUS:
+            case DIV:
+            case MOD: {
+                visitExpression(expressionBinary.e0, null);
+                visitExpression(expressionBinary.e1, null);
+                if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
+                    expressionBinary.setType(Type.NUMBER);
+                }
+                // unsure if these statements go here
+                else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                    expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
+                    expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else {
+                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                }
             }
-            else if (expressionBinary.e0.getType() == Type.BOOLEAN && expressionBinary.e1.getType() == Type.BOOLEAN){
-                expressionBinary.setType(Type.STRING);
+                break;
+            case TIMES: {
+                visitExpression(expressionBinary.e0, null);
+                visitExpression(expressionBinary.e1, null);
+                if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
+                    expressionBinary.setType(Type.NUMBER);
+                } else if (expressionBinary.e0.getType() == Type.BOOLEAN
+                        && expressionBinary.e1.getType() == Type.BOOLEAN) {
+                    expressionBinary.setType(Type.STRING);
+                }
+                // unsure if these statements go here
+                else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                    expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
+                    expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else {
+                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                }
             }
-            else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null){
-                expressionBinary.e0.setType(expressionBinary.e1.getType());
-                visitExpressionBinary(expressionBinary, arg);
+                break;
+            case EQ:
+            case NEQ:
+            case LT:
+            case GT:
+            case LE:
+            case GE: {
+                visitExpression(expressionBinary.e0, null);
+                visitExpression(expressionBinary.e1, null);
+                if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
+                    expressionBinary.setType(Type.BOOLEAN);
+                } else if (expressionBinary.e0.getType() == Type.STRING
+                        && expressionBinary.e1.getType() == Type.STRING) {
+                    expressionBinary.setType(Type.BOOLEAN);
+                } else if (expressionBinary.e0.getType() == Type.BOOLEAN
+                        && expressionBinary.e1.getType() == Type.BOOLEAN) {
+                    expressionBinary.setType(Type.BOOLEAN);
+                }
+                // unsure if these statements go here
+                else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                    expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
+                    expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    // visitExpressionBinary(expressionBinary, arg);
+                } else {
+                    throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
+                }
             }
-            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null){
-                expressionBinary.e1.setType(expressionBinary.e0.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else{
-                throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
-            }
-        }
-        break;
-        case MINUS:
-        case DIV:
-        case MOD:{
-            visitExpression(expressionBinary.e0, null);
-            visitExpression(expressionBinary.e1, null);
-            if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER){
-                expressionBinary.setType(Type.NUMBER);
-            }
-            //unsure if these statements go here
-            else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null){
-                expressionBinary.e0.setType(expressionBinary.e1.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null){
-                expressionBinary.e1.setType(expressionBinary.e0.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else{
-                throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
-            }
-        }
-        break;
-        case TIMES:{
-            visitExpression(expressionBinary.e0, null);
-            visitExpression(expressionBinary.e1, null);
-            if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER){
-                expressionBinary.setType(Type.NUMBER);
-            }
-            else if (expressionBinary.e0.getType() == Type.BOOLEAN && expressionBinary.e1.getType() == Type.BOOLEAN){
-                expressionBinary.setType(Type.STRING);
-            }
-            //unsure if these statements go here
-            else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null){
-                expressionBinary.e0.setType(expressionBinary.e1.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null){
-                expressionBinary.e1.setType(expressionBinary.e0.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else{
-                throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
-            }
-        }
-        break;
-        case EQ:
-        case NEQ:
-        case LT:
-        case GT:
-        case LE:
-        case GE:{
-            visitExpression(expressionBinary.e0, null);
-            visitExpression(expressionBinary.e1, null);
-            if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER){
-                expressionBinary.setType(Type.BOOLEAN);
-            }
-            else if (expressionBinary.e0.getType() == Type.STRING && expressionBinary.e1.getType() == Type.STRING){
-                expressionBinary.setType(Type.BOOLEAN);
-            }
-            else if (expressionBinary.e0.getType() == Type.BOOLEAN && expressionBinary.e1.getType() == Type.BOOLEAN){
-                expressionBinary.setType(Type.BOOLEAN);
-            }
-            //unsure if these statements go here
-            else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null){
-                expressionBinary.e0.setType(expressionBinary.e1.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null){
-                expressionBinary.e1.setType(expressionBinary.e0.getType());
-                visitExpressionBinary(expressionBinary, arg);
-            }
-            else{
-                throw new TypeCheckException("Invalid type for ExpressionBinary, unequal types of e0 and e1");
-            }
-        }
-        break;
-        default:
-            throw new TypeCheckException("Invalid op for ExpressionBinary, should be PLUS, MINUS, TIMES, DIV, MOD, EQ, NEQ, LT, GT, LE, GE");
+                break;
+            default:
+                throw new TypeCheckException(
+                        "Invalid op for ExpressionBinary, should be PLUS, MINUS, TIMES, DIV, MOD, EQ, NEQ, LT, GT, LE, GE");
         }
         return null;
     }
@@ -334,19 +332,20 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         procDec.setType(Type.PROCEDURE);
+        visitBlock(procDec.block, null);
         return null;
     }
 
     @Override
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
         System.out.println("In visitConstdec");
-        System.out.println("got value: "+constDec.val);
+        System.out.println("got value: " + constDec.val);
         // TODO Auto-generated method stub
         Object gotVal = constDec.val;
         if (gotVal instanceof Integer)
             constDec.setType(Type.NUMBER);
         if (gotVal instanceof String)
-            constDec.setType(Type.STRING);  
+            constDec.setType(Type.STRING);
         if (gotVal instanceof Boolean)
             constDec.setType(Type.BOOLEAN);
         return null;
@@ -361,8 +360,10 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor{
     @Override
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
         // TODO Auto-generated method stub
+        // if (ident.getDec() instanceof VarDec) {
 
+        // }
         return null;
     }
-    
+
 }
