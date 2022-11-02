@@ -119,6 +119,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         int count = 0;
+        
         if (statementAssign.expression != null) {
             if ((statementAssign.ident.getDec() instanceof ConstDec
                     || statementAssign.ident.getDec() instanceof ProcDec) && (Boolean) arg) {
@@ -131,10 +132,18 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                 ++count;
             } else if (rhsType == null && statementAssign.ident.getDec().getType() != null) {
                 statementAssign.expression.setType(statementAssign.ident.getDec().getType());
-            } else if (statementAssign.ident.getDec().getType() != rhsType && (Boolean) arg) {
+
+            } else if(statementAssign.ident.getDec().getType()!=null && rhsType!=null && statementAssign.ident.getDec().getType() != rhsType) {
+                throw new TypeCheckException("type mismatch");
+            }
+
+            else if (statementAssign.ident.getDec().getType() != rhsType && (Boolean) arg) {
                 throw new TypeCheckException("Type mismatch in assignment");
             }
+            System.out.println("IN CASE Statement assign lhs: " +String.valueOf(statementAssign.ident.getFirstToken().getText())+" "+ statementAssign.ident.getDec().getType()+ "AND OF Rhs "
+                        + String.valueOf(statementAssign.expression.getFirstToken().getText()) +" " + statementAssign.expression.getType());
         }
+
         // System.out.println("completed statement assign got count " + count);
         return count;
     }
@@ -166,7 +175,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
         // TODO Auto-generated method stub
         visitIdent(statementInput.ident, arg);
         if ((statementInput.ident.getDec().getType() == Type.PROCEDURE
-                || statementInput.ident.getDec().getType() == null) && (Boolean) arg) {
+                || statementInput.ident.getDec().getType() == null || statementInput.ident.getDec() instanceof ConstDec) && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementInput, should be Num, String or Bool");
         }
         return null;
@@ -253,9 +262,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
         int count = 0;
         switch (expressionBinary.op.getKind()) {
             case PLUS: {
-                System.out.println("IN CASE PLUS, SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
-                        + expressionBinary.e1.getType() + expressionBinary.e0.toString()
-                        + expressionBinary.e1.toString());
+                
                 count += (Integer) visitExpression(expressionBinary.e0, arg);
                 count += (Integer) visitExpression(expressionBinary.e1, arg);
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
@@ -271,20 +278,41 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     ++count;
                 } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
                     // visitExpressionBinary(expressionBinary, arg);
-                } else {
+                } 
+                else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                    expressionBinary.e0.setType(expressionBinary.getType());
+                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                    }
+                    ++count;
+                    expressionBinary.e1.setType(expressionBinary.getType());
+                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                    }
+                    ++count;
+                }
+                else {
                     if ((Boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary PLUS, unequal types of e0 and e1 at "
-                                        + expressionBinary.e0.getSourceLocation() + " "
-                                        + expressionBinary.e1.getSourceLocation());
+                                        + String.valueOf(expressionBinary.e0.getFirstToken().getText()) + " "
+                                        + String.valueOf(expressionBinary.e1.getFirstToken().getText()));
                 }
+                System.out.println("IN CASE PLUS, SET TYPES OF EXPR0 " +String.valueOf(expressionBinary.e0.getFirstToken().getText())+" "+ expressionBinary.e0.getType() + "AND OF E1 "
+                        + expressionBinary.e1.getType() +" " +String.valueOf(expressionBinary.e1.getFirstToken().getText()));
             }
                 break;
             case MINUS:
@@ -292,9 +320,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             case MOD: {
                 count += (Integer) visitExpression(expressionBinary.e0, arg);
                 count += (Integer) visitExpression(expressionBinary.e1, arg);
-                System.out.println(
-                        "IN CASE MINUS DIV MOD, SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
-                                + expressionBinary.e1.getType());
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
                     expressionBinary.setType(Type.NUMBER);
                     ++count;
@@ -302,30 +327,49 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                 // unsure if these statements go here
                 else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
                     // visitExpressionBinary(expressionBinary, arg);
-                } else {
+                } 
+                else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                    expressionBinary.e0.setType(expressionBinary.getType());
+                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                    }
+                    ++count;
+                    expressionBinary.e1.setType(expressionBinary.getType());
+                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                    }
+                    ++count;
+                }
+                else {
                     if ((Boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary MINUS DIV MOD, unequal types of e0 and e1 at "
                                         + expressionBinary.e0.getSourceLocation() + " "
                                         + expressionBinary.e1.getSourceLocation());
                 }
+                System.out.println(
+                        "IN CASE MINUS DIV MOD, SET TYPES OF EXPR0 " + expressionBinary.e0.getType()+String.valueOf(expressionBinary.e0.getFirstToken().getText())+" " + "AND OF E1 "
+                                + expressionBinary.e1.getType()+" "+String.valueOf(expressionBinary.e1.getFirstToken().getText()));
             }
                 break;
             case TIMES: {
                 // add ccase to throw error if e0 or e1 is string
                 count += (Integer) visitExpression(expressionBinary.e0, arg);
                 count += (Integer) visitExpression(expressionBinary.e1, arg);
-                System.out.println(
-                        "IN CASE TIMES SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
-                                + expressionBinary.e1.getType());
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
                     expressionBinary.setType(Type.NUMBER);
                     ++count;
@@ -337,21 +381,43 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                 // unsure if these statements go here
                 else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
                     // visitExpressionBinary(expressionBinary, arg);
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
                     // visitExpressionBinary(expressionBinary, arg);
-                } else {
+                } 
+                else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                    expressionBinary.e0.setType(expressionBinary.getType());
+                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                    }
+                    ++count;
+                    expressionBinary.e1.setType(expressionBinary.getType());
+                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                    }
+                    ++count;
+                }
+                else {
                     if ((Boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary TIMES, unequal types of e0 and e1 at "
                                         + expressionBinary.e0.getSourceLocation() + " "
                                         + expressionBinary.e1.getSourceLocation());
                 }
+                System.out.println(
+                        "IN CASE TIMES SET TYPES OF EXPR0 " + expressionBinary.e0.getType() +" "+String.valueOf(expressionBinary.e0.getFirstToken().getText())+ "AND OF E1 "
+                                + expressionBinary.e1.getType());
             }
                 break;
             case EQ:
@@ -362,9 +428,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             case GE: {
                 count += (Integer) visitExpression(expressionBinary.e0, arg);
                 count += (Integer) visitExpression(expressionBinary.e1, arg);
-                System.out.println(
-                        "IN CASE EQ,NEQ,LT SET TYPES OF EXPR0 " + expressionBinary.e0.getType() + "AND OF E1 "
-                                + expressionBinary.e1.getType());
                 if ((expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER)
                         || (expressionBinary.e0
                                 .getType() == Type.STRING
@@ -375,19 +438,41 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     ++count;
                 } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
+                    if(expressionBinary.e0 instanceof ExpressionIdent&& ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    }
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
+                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    }
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
-                } else {
+                } 
+                // else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                //     expressionBinary.e0.setType(expressionBinary.getType());
+                //     if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
+                //         ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                //     }
+                //     ++count;
+                //     expressionBinary.e1.setType(expressionBinary.getType());
+                //     if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
+                //         ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                //     }
+                //     ++count;
+                // }
+                else {
                     if ((boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary EQ NEQ, unequal types of e0 and e1 at "
                                         + expressionBinary.e0.getSourceLocation() + " "
                                         + expressionBinary.e1.getSourceLocation());
                 }
+                System.out.println(
+                        "IN CASE EQ,NEQ,LT SET TYPES OF EXPR0 " + expressionBinary.e0.getType()+" "+String.valueOf(expressionBinary.e0.getFirstToken().getText()) + "AND OF E1 "
+                                + expressionBinary.e1.getType()+" "+String.valueOf(expressionBinary.e1.getFirstToken().getText()));
             }
                 break;
             default:
@@ -402,11 +487,16 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
         // TODO Auto-generated method stub
         int count = 0;
+
         if (expressionIdent.getType() == null) {
             expressionIdent.setType(expressionIdent.getDec().getType());
             ++count;
         }
-
+        if ((boolean) arg && expressionIdent.getType() != expressionIdent.getDec().getType() && expressionIdent.getDec().getType() != null) {
+            throw new TypeCheckException("BYE");
+        }
+        // String name = String.valueOf(expressionIdent.getFirstToken().getText());
+        // System.out.println("Got expression ident with name: "+name+"Set type to: "+expressionIdent.getDec().getType());
         return count;
     }
 
