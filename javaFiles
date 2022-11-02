@@ -13,5 +13,8 @@
 ./src/edu/ufl/cise/plpfa22/ScopeTest.java
 ./src/edu/ufl/cise/plpfa22/SyntaxException.java
 ./src/edu/ufl/cise/plpfa22/Token.java
+./src/edu/ufl/cise/plpfa22/TypeChecker.java
+./src/edu/ufl/cise/plpfa22/TypeCheckException.java
+./src/edu/ufl/cise/plpfa22/TypeTest.java
 ./src/edu/ufl/cise/plpfa22/ast
 
