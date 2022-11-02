@@ -43,7 +43,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     visitVarDec(block.varDecs.get(i), debug);
                 }
             }
-            // TODO Auto-generated method stub
             if (block.procedureDecs.size() != 0) {
                 for (int i = 0; i < block.procedureDecs.size(); i++) {
                     changesInThisRun = changesInThisRun + (Integer) visitProcedure(block.procedureDecs.get(i), debug);
@@ -51,7 +50,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
             }
             visitStatement(block.statement, debug);
-            // System.out.println("done with a run got count: " + changesInThisRun);
             if (changesInThisRun == 0 || changesInPrevRun == changesInThisRun) {
                 flag = false;
                 debug = true;
@@ -70,7 +68,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     visitVarDec(block.varDecs.get(i), debug);
                 }
             }
-            // TODO Auto-generated method stub
             if (block.procedureDecs.size() != 0) {
                 for (int i = 0; i < block.procedureDecs.size(); i++) {
                     visitProcedure(block.procedureDecs.get(i), debug);
@@ -108,7 +105,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         if (program != null) {
             visitBlock(program.block, null);
         }
@@ -117,7 +113,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
         
         if (statementAssign.expression != null) {
@@ -140,30 +135,20 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             else if (statementAssign.ident.getDec().getType() != rhsType && (Boolean) arg) {
                 throw new TypeCheckException("Type mismatch in assignment");
             }
-            System.out.println("IN CASE Statement assign lhs: " +String.valueOf(statementAssign.ident.getFirstToken().getText())+" "+ statementAssign.ident.getDec().getType()+ "AND OF Rhs "
-                        + String.valueOf(statementAssign.expression.getFirstToken().getText()) +" " + statementAssign.expression.getType());
         }
 
-        // System.out.println("completed statement assign got count " + count);
         return count;
     }
 
     @Override
     public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
 
         return null;
     }
 
     @Override
     public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         visitIdent(statementCall.ident, arg);
-        // System.out.println("Inside visit statement call got ident:" +
-        // statementCall.ident.getFirstToken()
-        // + "with type: " + statementCall.ident
-        // .getDec().getType()
-        // + " Debug is set to:" + (Boolean) arg);
         if (statementCall.ident.getDec().getType() != Type.PROCEDURE && (Boolean) arg) {
             throw new TypeCheckException("Calling a non-procedure ident");
         }
@@ -172,7 +157,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         visitIdent(statementInput.ident, arg);
         if ((statementInput.ident.getDec().getType() == Type.PROCEDURE
                 || statementInput.ident.getDec().getType() == null || statementInput.ident.getDec() instanceof ConstDec) && (Boolean) arg) {
@@ -184,7 +168,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         visitExpression(statementOutput.expression, arg);
         if ((statementOutput.expression.getType() == Type.PROCEDURE || statementOutput.expression.getType() == null)
                 && (Boolean) arg) {
@@ -196,7 +179,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
         int count = 0;
-        // TODO Auto-generated method stub
         if (statementBlock.statements.size() != 0) {
             for (int i = 0; i < statementBlock.statements.size(); i++) {
                 count += (Integer) visitStatement(statementBlock.statements.get(i), arg);
@@ -207,10 +189,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
-        // statement must be correctly typed, check for that here?
-        // System.out.println("Inside statementIf, got expression: " +
-        // statementIf.expression);
         int count = 0;
         count += (Integer) visitExpression(statementIf.expression, arg);
         if (statementIf.expression.getType() != Type.BOOLEAN && (Boolean) arg) {
@@ -222,11 +200,8 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
         count += (Integer) visitExpression(statementWhile.expression, arg);
-        // System.out.println("visited while expr, type set to:" +
-        // statementWhile.expression.getType());
         if (statementWhile.expression.getType() != Type.BOOLEAN && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementWhile, should be Boolean");
         }
@@ -258,7 +233,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
         switch (expressionBinary.op.getKind()) {
             case PLUS: {
@@ -290,7 +264,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
-                    // visitExpressionBinary(expressionBinary, arg);
                 } 
                 else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
                     expressionBinary.e0.setType(expressionBinary.getType());
@@ -324,7 +297,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     expressionBinary.setType(Type.NUMBER);
                     ++count;
                 }
-                // unsure if these statements go here
                 else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
                     if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
@@ -332,7 +304,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
-                    // visitExpressionBinary(expressionBinary, arg);
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
                     if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
@@ -340,7 +311,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
-                    // visitExpressionBinary(expressionBinary, arg);
                 } 
                 else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
                     expressionBinary.e0.setType(expressionBinary.getType());
@@ -361,13 +331,9 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                                         + expressionBinary.e0.getSourceLocation() + " "
                                         + expressionBinary.e1.getSourceLocation());
                 }
-                System.out.println(
-                        "IN CASE MINUS DIV MOD, SET TYPES OF EXPR0 " + expressionBinary.e0.getType()+String.valueOf(expressionBinary.e0.getFirstToken().getText())+" " + "AND OF E1 "
-                                + expressionBinary.e1.getType()+" "+String.valueOf(expressionBinary.e1.getFirstToken().getText()));
             }
                 break;
             case TIMES: {
-                // add ccase to throw error if e0 or e1 is string
                 count += (Integer) visitExpression(expressionBinary.e0, arg);
                 count += (Integer) visitExpression(expressionBinary.e1, arg);
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
@@ -378,7 +344,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
                 }
-                // unsure if these statements go here
                 else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
                     if (expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null) {
@@ -386,16 +351,13 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
-                    // visitExpressionBinary(expressionBinary, arg);
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
                     if (expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null) {
                         ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
                     }
                     expressionBinary.setType(expressionBinary.e0.getType());
-                    ++count;
-                    // visitExpressionBinary(expressionBinary, arg);
-                } 
+                    ++count;                } 
                 else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
                     expressionBinary.e0.setType(expressionBinary.getType());
                     if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
@@ -415,9 +377,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                                         + expressionBinary.e0.getSourceLocation() + " "
                                         + expressionBinary.e1.getSourceLocation());
                 }
-                System.out.println(
-                        "IN CASE TIMES SET TYPES OF EXPR0 " + expressionBinary.e0.getType() +" "+String.valueOf(expressionBinary.e0.getFirstToken().getText())+ "AND OF E1 "
-                                + expressionBinary.e1.getType());
             }
                 break;
             case EQ:
@@ -451,18 +410,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
                 } 
-                // else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
-                //     expressionBinary.e0.setType(expressionBinary.getType());
-                //     if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                //         ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
-                //     }
-                //     ++count;
-                //     expressionBinary.e1.setType(expressionBinary.getType());
-                //     if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                //         ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
-                //     }
-                //     ++count;
-                // }
                 else {
                     if ((boolean) arg)
                         throw new TypeCheckException(
@@ -470,9 +417,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                                         + expressionBinary.e0.getSourceLocation() + " "
                                         + expressionBinary.e1.getSourceLocation());
                 }
-                System.out.println(
-                        "IN CASE EQ,NEQ,LT SET TYPES OF EXPR0 " + expressionBinary.e0.getType()+" "+String.valueOf(expressionBinary.e0.getFirstToken().getText()) + "AND OF E1 "
-                                + expressionBinary.e1.getType()+" "+String.valueOf(expressionBinary.e1.getFirstToken().getText()));
             }
                 break;
             default:
@@ -485,9 +429,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
-
         if (expressionIdent.getType() == null) {
             expressionIdent.setType(expressionIdent.getDec().getType());
             ++count;
@@ -495,14 +437,11 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
         if ((boolean) arg && expressionIdent.getType() != expressionIdent.getDec().getType() && expressionIdent.getDec().getType() != null) {
             throw new TypeCheckException("BYE");
         }
-        // String name = String.valueOf(expressionIdent.getFirstToken().getText());
-        // System.out.println("Got expression ident with name: "+name+"Set type to: "+expressionIdent.getDec().getType());
         return count;
     }
 
     @Override
     public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
         if (expressionNumLit.getType() == null) {
             expressionNumLit.setType(Type.NUMBER);
@@ -514,7 +453,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
         if (expressionStringLit.getType() == null) {
             expressionStringLit.setType(Type.STRING);
@@ -526,7 +464,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         int count = 0;
         if (expressionBooleanLit.getType() == null) {
             expressionBooleanLit.setType(Type.BOOLEAN);
@@ -538,7 +475,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         int count = 0;
-        // TODO Auto-generated method stub
         if (procDec.getType() == null) {
             procDec.setType(Type.PROCEDURE);
             ++count;
@@ -555,10 +491,6 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
         int count = 0;
-
-        // System.out.println("In visitConstdec");
-        // System.out.println("got value: " + constDec.val);
-        // TODO Auto-generated method stub
         Object gotVal = constDec.val;
         if (constDec.getType() == null) {
             if (gotVal instanceof Integer) {
@@ -583,16 +515,11 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
 
     @Override
     public Object visitStatementEmpty(StatementEmpty statementEmpty, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Object visitIdent(Ident ident, Object arg) throws PLPException {
-        // TODO Auto-generated method stub
-        // if (ident.getDec() instanceof VarDec) {
-
-        // }
         return null;
     }
 
