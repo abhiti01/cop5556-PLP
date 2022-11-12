@@ -19,7 +19,12 @@ public class CompilerComponentFactory {
 	public static ASTVisitor getScopeVisitor() throws ScopeException {
 		return new ASTVisitorNew();
 	}
-	public static ASTVisitor getTypeInferenceVisitor() throws TypeCheckException{
+
+	public static ASTVisitor getTypeInferenceVisitor() throws TypeCheckException {
 		return new TypeChecker();
+	}
+
+	public static ASTVisitor getCodeGenVisitor(String packageName, String className, String sourceFileName) {
+		return new CodeGenVisitor(packageName, className, sourceFileName);
 	}
 }
