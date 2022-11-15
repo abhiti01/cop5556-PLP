@@ -37,8 +37,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	final String classDesc;
 
 	ClassWriter classWriter;
-	// public static final String stringUtilClass =
-	// "edu/ufl/cise/plpfa22/StringUtil";
 
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
@@ -238,7 +236,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				;
 			}
 			case BOOLEAN -> {
-				// throw new UnsupportedOperationException();
 				expressionBinary.e0.visit(this, arg);
 				expressionBinary.e1.visit(this, arg);
 				switch (op) {
@@ -263,7 +260,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitLabel(labelPostBoolNeq);
 					}
 					case LT -> {
-						// throw new UnsupportedOperationException();
 						Label labelBoolLTFalseBr = new Label();
 						mv.visitJumpInsn(IF_ICMPGE, labelBoolLTFalseBr);
 						mv.visitInsn(ICONST_1);
@@ -274,7 +270,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitLabel(labelPostBoolLT);
 					}
 					case LE -> {
-						// throw new UnsupportedOperationException();
 						Label labelBoolLEFalseBr = new Label();
 						mv.visitJumpInsn(IF_ICMPGT, labelBoolLEFalseBr);
 						mv.visitInsn(ICONST_1);
@@ -285,7 +280,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitLabel(labelPostBoolLE);
 					}
 					case GT -> {
-						// throw new UnsupportedOperationException();
 						Label labelBoolGTFalseBr = new Label();
 						mv.visitJumpInsn(IF_ICMPLE, labelBoolGTFalseBr);
 						mv.visitInsn(ICONST_1);
@@ -296,7 +290,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitLabel(labelPostBoolGT);
 					}
 					case GE -> {
-						// throw new UnsupportedOperationException();
 						Label labelBoolGEFalseBr = new Label();
 						mv.visitJumpInsn(IF_ICMPLT, labelBoolGEFalseBr);
 						mv.visitInsn(ICONST_1);

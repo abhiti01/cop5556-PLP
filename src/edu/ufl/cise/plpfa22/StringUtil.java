@@ -5,18 +5,6 @@ public class StringUtil {
         return !arg;
     }
 
-    // public static String plusString(String a, String b) {
-    // return a + b;
-    // }
-
-    // public static boolean equalsString(String a, String b) {
-    // return a.equals(b);
-    // }
-
-    // public static boolean notEqualsString(String a, String b) {
-    // return !a.equals(b);
-    // }
-
     public static boolean lessThanString(String a, String b) {
         return b.startsWith(a) && !b.equals(a);
     }
