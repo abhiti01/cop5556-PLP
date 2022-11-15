@@ -1,4 +1,7 @@
 ./src/edu/ufl/cise/plpfa22/ASTVisitorNew.java
+./src/edu/ufl/cise/plpfa22/CodeGenTests.java
+./src/edu/ufl/cise/plpfa22/CodeGenUtils.java
+./src/edu/ufl/cise/plpfa22/CodeGenVisitor.java
 ./src/edu/ufl/cise/plpfa22/CompilerComponentFactory.java
 ./src/edu/ufl/cise/plpfa22/ILexer.java
 ./src/edu/ufl/cise/plpfa22/IParser.java
@@ -11,6 +14,7 @@
 ./src/edu/ufl/cise/plpfa22/PLPException.java
 ./src/edu/ufl/cise/plpfa22/ScopeException.java
 ./src/edu/ufl/cise/plpfa22/ScopeTest.java
+./src/edu/ufl/cise/plpfa22/StringUtil.java
 ./src/edu/ufl/cise/plpfa22/SyntaxException.java
 ./src/edu/ufl/cise/plpfa22/Token.java
 ./src/edu/ufl/cise/plpfa22/TypeChecker.java
