@@ -71,7 +71,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// Proc Visit
 		visitingProcedure = 1;
 		// visit nest member, visit innerclass
-
+// 		classWriter.visitNestMember(fullyQualifiedClassName+"$p1"); 
+// 		classWriter.visitInnerClass(fullyQualifiedClassName+"$p1", 
+// fullyQualifiedClassName, "p1", 0);
 		// program.block.visit(this, classWriter);
 
 		visitingProcedure = 0;
@@ -102,7 +104,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// finish up the class
 		classWriter.visitEnd();
 
-		genClassInstances.add(new CodeGenUtils.GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		genClassInstances.add(0,new CodeGenUtils.GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		System.out.println("GenClass List in visitProgram: " + genClassInstances);
 		// return the bytes making up the classfile
 		// return classWriter.toByteArray();
 		return genClassInstances;
@@ -148,7 +151,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
 				fullyQualifiedClassName,
 				String.valueOf(procDec.ident.getText()), 0);
-
+		// procDec.block.visit(this, classWriterProc);
 		FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$0",
 				"L" + fullyQualifiedClassName + ";", null, null);
 		fieldVisitorProc.visitEnd();
@@ -166,17 +169,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitorProc.visitMaxs(2, 2);
 		methodVisitorProc.visitEnd();
 
-		methodVisitorProc = classWriterProc.visitMethod(ACC_PUBLIC, "run", "()V",
-				null, null);
-		methodVisitorProc.visitCode();
+		// methodVisitorProc = classWriterProc.visitMethod(ACC_PUBLIC, "run", "()V",
+		// 		null, null);
+		// methodVisitorProc.visitCode();
 		procDec.block.visit(this, classWriterProc);
-		methodVisitorProc.visitMaxs(2, 1);
-		methodVisitorProc.visitEnd();
+		// methodVisitorProc.visitInsn(RETURN);
+		// methodVisitorProc.visitMaxs(2, 1);
+		// methodVisitorProc.visitEnd();
 		classWriterProc.visitEnd();
 
 		genClassInstances
 				.add(new CodeGenUtils.GenClass(fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
 						classWriterProc.toByteArray()));
+		System.out.println("GenClass List in visitProcedure: " + genClassInstances);
 		return null;
 	}
 
@@ -232,7 +237,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				"(L" + fullyQualifiedClassName + ";)V", false);
 		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName + "$"
 				+ String.valueOf(statementCall.ident.getText()), "run", "()V", false);
-
+		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(3, 1);
 		methodVisitor.visitEnd();
 		return null;
