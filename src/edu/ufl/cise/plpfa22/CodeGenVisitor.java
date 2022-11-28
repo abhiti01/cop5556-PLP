@@ -71,9 +71,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// Proc Visit
 		visitingProcedure = 1;
 		// visit nest member, visit innerclass
-// 		classWriter.visitNestMember(fullyQualifiedClassName+"$p1"); 
-// 		classWriter.visitInnerClass(fullyQualifiedClassName+"$p1", 
-// fullyQualifiedClassName, "p1", 0);
+		// classWriter.visitNestMember(fullyQualifiedClassName+"$p1");
+		// classWriter.visitInnerClass(fullyQualifiedClassName+"$p1",
+		// fullyQualifiedClassName, "p1", 0);
 		// program.block.visit(this, classWriter);
 
 		visitingProcedure = 0;
@@ -104,7 +104,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// finish up the class
 		classWriter.visitEnd();
 
-		genClassInstances.add(0,new CodeGenUtils.GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		genClassInstances.add(0, new CodeGenUtils.GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
 		System.out.println("GenClass List in visitProgram: " + genClassInstances);
 		// return the bytes making up the classfile
 		// return classWriter.toByteArray();
@@ -170,7 +170,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitorProc.visitEnd();
 
 		// methodVisitorProc = classWriterProc.visitMethod(ACC_PUBLIC, "run", "()V",
-		// 		null, null);
+		// null, null);
 		// methodVisitorProc.visitCode();
 		procDec.block.visit(this, classWriterProc);
 		// methodVisitorProc.visitInsn(RETURN);
@@ -495,8 +495,22 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			mv.visitVarInsn(ALOAD, 0);
 			String descriptor = (expressionIdent.getDec().getType().equals(Type.NUMBER) ? "I"
 					: (expressionIdent.getDec().getType().equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
-			mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName, String.valueOf(expressionIdent.firstToken.getText()),
-					descriptor);
+			// use nest level to go up the chain of this$n variables for non local variables
+			// and getfield
+			if (expressionIdent.getNest() != expressionIdent.getDec().getNest()) {
+				for (int i = 0; i < expressionIdent.getNest() - expressionIdent.getDec().getNest(); i++) {
+					mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$" + String.valueOf(i),
+							"L" + fullyQualifiedClassName + ";");
+				}
+				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
+						String.valueOf(expressionIdent.firstToken.getText()),
+						descriptor);
+			} else {
+				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
+						String.valueOf(expressionIdent.firstToken.getText()),
+						descriptor);
+			}
+
 		}
 		return null;
 	}
@@ -533,11 +547,47 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// add .this$n to descriptorfor non local variables
 		MethodVisitor mv = (MethodVisitor) arg;
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitInsn(SWAP);
+
+		System.out.println("Nest level of ident: " + String.valueOf(ident.getNest()));
+		System.out.println("Nest level of ident's dec: " + String.valueOf(ident.getDec().getNest()));
+
 		String descriptor = (ident.getDec().getType().equals(Type.NUMBER) ? "I"
 				: (ident.getDec().getType().equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
-		mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, String.valueOf(ident.firstToken.getText()),
-				descriptor);
+
+		// use nest level to go up the chain of this$n vars for non local variables and
+		// putfield
+		if (ident.getNest() != ident.getDec().getNest()) {
+			for (int i = 0; i < ident.getNest() - ident.getDec().getNest(); i++) {
+				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$" + String.valueOf(i),
+						"L" + fullyQualifiedClassName + ";");
+			}
+		}
+		mv.visitInsn(SWAP);
+		// if (ident.getNest() != ident.getDec().getNest()) {
+		// int diff = ident.getNest() - ident.getDec().getNest();
+		// for (int i = 0; i < diff; i++) {
+		// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$p", "this$" +
+		// String.valueOf(i),
+		// "L" + fullyQualifiedClassName + ";");
+		// }
+		// }
+		mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, String.valueOf(ident.firstToken.getText()), descriptor);
+
+		// if (ident.getNest() > ident.getDec().getNest()) {
+		// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$0", "L" +
+		// fullyQualifiedClassName + ";");
+		// // mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
+		// // String.valueOf(ident.getText()), descriptor);
+		// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
+		// String.valueOf(ident.getText()), descriptor);
+		// } else {
+		// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
+		// String.valueOf(ident.getText()), descriptor);
+		// }
+
+		// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
+		// String.valueOf(ident.firstToken.getText()),
+		// descriptor);
 		return null;
 	}
 

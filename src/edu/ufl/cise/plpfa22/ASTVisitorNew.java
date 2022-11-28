@@ -63,6 +63,7 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     public Object visitProgram(Program program, Object arg) throws PLPException {
         symboltable.enterScope();
         if (program != null) {
+            // visitBlock(program.block, "prog");
             visitBlock(program.block, arg);
         }
         symboltable.exitScope();
