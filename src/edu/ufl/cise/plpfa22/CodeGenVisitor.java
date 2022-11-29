@@ -15,6 +15,7 @@ import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
+import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
@@ -86,7 +87,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// classWriter.visitNestMember(fullyQualifiedClassName+"$p1");
 		// classWriter.visitInnerClass(fullyQualifiedClassName+"$p1",
 		// fullyQualifiedClassName, "p1", 0);
-		// program.block.visit(this, classWriter);
+		program.block.visit(this, classWriter);
 
 		visitingProcedure = 0;
 		// creating method visitor
@@ -125,84 +126,88 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitBlock(Block block, Object arg) throws PLPException {
-		// MethodVisitor methodVisitor = (MethodVisitor) arg;
-		ClassWriter classWriter = (ClassWriter) arg;
 
-		// for (ConstDec constDec : block.constDecs) {
-		// constDec.visit(this, methodVisitor);
-		// }
-		for (VarDec varDec : block.varDecs) {
-			varDec.visit(this, classWriter);
+		if (visitingProcedure == 1) {
+			ClassWriter classWriter = (ClassWriter) arg;
+			for (ProcDec procDec : block.procedureDecs) {
+				procDec.visit(this, arg);
+			}
+		} else {
+
+			ClassWriter classWriter = (ClassWriter) arg;
+			for (VarDec varDec : block.varDecs) {
+				varDec.visit(this, classWriter);
+			}
+			for (ProcDec procDec : block.procedureDecs) {
+				procDec.visit(this, classWriter);
+			}
+			MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
+			methodVisitor.visitCode();
+			// add instructions from statement to method
+			block.statement.visit(this, methodVisitor);
+			methodVisitor.visitInsn(RETURN);
+			methodVisitor.visitMaxs(0, 0);
+			methodVisitor.visitEnd();
 		}
-		for (ProcDec procDec : block.procedureDecs) {
-			procDec.visit(this, null);
-		}
-		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
-		methodVisitor.visitCode();
-		// add instructions from statement to method
-		block.statement.visit(this, methodVisitor);
-		methodVisitor.visitInsn(RETURN);
-		methodVisitor.visitMaxs(0, 0);
-		methodVisitor.visitEnd();
+
 		return null;
 
 	}
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		ClassWriter classWriterProc = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		// classWriterProc.visit(V18, ACC_PUBLIC | ACC_SUPER,
-		// fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
-		// null, "java/lang/Object",
-		// new String[] { "java/lang/Runnable" });
-		classWriterProc.visit(V18, ACC_PUBLIC | ACC_SUPER,
-				fullyQualifiedClassName + procDec.getProcLocation(), null, "java/lang/Object",
-				new String[] { "java/lang/Runnable" });
-		classWriterProc.visitSource(className + ".java", null);
-		classWriterProc.visitNestHost(fullyQualifiedClassName);
-		// classWriterProc.visitInnerClass(
-		// fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
-		// fullyQualifiedClassName,
-		// String.valueOf(procDec.ident.getText()), 0);
-		classWriterProc.visitInnerClass(
-				fullyQualifiedClassName + procDec.getProcLocation(),
-				fullyQualifiedClassName + procDec.getParentProcLocation(),
-				String.valueOf(procDec.ident.getText()), 0);
-		// FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL |
-		// ACC_SYNTHETIC, "this$0",
-		// "L" + fullyQualifiedClassName + ";", null, null);
-		FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL | ACC_SYNTHETIC,
-				"this$" + procDec.getNest(),
-				"L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";", null, null);
-		fieldVisitorProc.visitEnd();
-		// MethodVisitor methodVisitorProc = classWriterProc.visitMethod(0, "<init>",
-		// "(L" + fullyQualifiedClassName + ";)V", null, null);
-		MethodVisitor methodVisitorProc = classWriterProc.visitMethod(0, "<init>",
-				"(L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";)V", null, null);
-		methodVisitorProc.visitCode();
-		methodVisitorProc.visitVarInsn(ALOAD, 0);
-		methodVisitorProc.visitVarInsn(ALOAD, 1);
-		// methodVisitorProc.visitFieldInsn(PUTFIELD,
-		// fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
-		// "this$0",
-		// "L" + fullyQualifiedClassName + ";");
-		methodVisitorProc.visitFieldInsn(PUTFIELD,
-				fullyQualifiedClassName + procDec.getProcLocation(), "this$" + procDec.getNest(),
-				"L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";");
-		methodVisitorProc.visitVarInsn(ALOAD, 0);
-		methodVisitorProc.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-		methodVisitorProc.visitInsn(RETURN);
-		methodVisitorProc.visitMaxs(2, 2);
-		methodVisitorProc.visitEnd();
+		if (visitingProcedure == 1) {
+			ClassWriter classWriter = (ClassWriter) arg;
+			classWriter.visitNestMember(fullyQualifiedClassName + procDec.getProcLocation());
+			classWriter.visitInnerClass(fullyQualifiedClassName + procDec.getProcLocation(), fullyQualifiedClassName,
+					String.valueOf(procDec.ident.getKind()), 0);
+			procDec.block.visit(this, arg);
+		} else {
+			ClassWriter classWriterProc = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+			classWriterProc.visit(V18, ACC_PUBLIC | ACC_SUPER,
+					fullyQualifiedClassName + procDec.getProcLocation(), null,
+					"java/lang/Object",
+					new String[] { "java/lang/Runnable" });
+			classWriterProc.visitSource(className + ".java", null);
+			classWriterProc.visitNestHost(fullyQualifiedClassName);
+			classWriterProc.visitInnerClass(
+					fullyQualifiedClassName + procDec.getProcLocation(),
+					fullyQualifiedClassName + procDec.getParentProcLocation(),
+					String.valueOf(procDec.ident.getText()), 0);
+			FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL |
+					ACC_SYNTHETIC,
+					"this$" + procDec.getNest(),
+					"L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";", null,
+					null);
+			fieldVisitorProc.visitEnd();
+			MethodVisitor methodVisitorProc = classWriterProc.visitMethod(0, "<init>",
+					"(L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";)V",
+					null, null);
+			methodVisitorProc.visitCode();
+			methodVisitorProc.visitVarInsn(ALOAD, 0);
+			methodVisitorProc.visitVarInsn(ALOAD, 1);
+			methodVisitorProc.visitFieldInsn(PUTFIELD,
+					fullyQualifiedClassName + procDec.getProcLocation(), "this$" +
+							procDec.getNest(),
+					"L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";");
 
-		String tempCurrentProcLocation = currentProcLocation;
-		currentProcLocation = procDec.getProcLocation();
-		procDec.block.visit(this, classWriterProc);
-		currentProcLocation = tempCurrentProcLocation;
-		classWriterProc.visitEnd();
-		genClassInstances
-				.add(new CodeGenUtils.GenClass(fullyQualifiedClassName + procDec.getProcLocation(),
-						classWriterProc.toByteArray()));
+			methodVisitorProc.visitVarInsn(ALOAD, 0);
+			methodVisitorProc.visitMethodInsn(INVOKESPECIAL, "java/lang/Object",
+					"<init>", "()V", false);
+			methodVisitorProc.visitInsn(RETURN);
+			methodVisitorProc.visitMaxs(2, 2);
+			methodVisitorProc.visitEnd();
+
+			String tempCurrentProcLocation = currentProcLocation;
+			currentProcLocation = procDec.getProcLocation();
+			procDec.block.visit(this, classWriterProc);
+			currentProcLocation = tempCurrentProcLocation;
+			classWriterProc.visitEnd();
+			genClassInstances
+					.add(new CodeGenUtils.GenClass(fullyQualifiedClassName +
+							procDec.getProcLocation(),
+							classWriterProc.toByteArray()));
+		}
 		System.out.println("GenClass List in visitProcedure: " + genClassInstances);
 		return null;
 	}
@@ -239,11 +244,16 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
 		// throw new UnsupportedOperationException();
 		ClassWriter classWriter = (ClassWriter) arg;
-		String ident = String.valueOf(varDec.ident.getText());
-		String descriptor = (varDec.getType().equals(Type.NUMBER) ? "I"
-				: (varDec.getType().equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
-		FieldVisitor fieldVisitor = classWriter.visitField(0, ident, descriptor, null, null);
-		fieldVisitor.visitEnd();
+		System.out.println("In visitVarDec with ident: " + String.valueOf(varDec.ident.getText()) + " and type: "
+				+ varDec.getType());
+		Type varDecType = varDec.getType();
+		if (varDecType != null) {
+			String ident = String.valueOf(varDec.ident.getText());
+			String descriptor = (varDec.getType().equals(Type.NUMBER) ? "I"
+					: (varDec.getType().equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
+			FieldVisitor fieldVisitor = classWriter.visitField(0, ident, descriptor, null, null);
+			fieldVisitor.visitEnd();
+		}
 		return null;
 	}
 
@@ -251,19 +261,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
 		// throw new UnsupportedOperationException();
 		MethodVisitor methodVisitor = (MethodVisitor) arg;
-		// methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName + "$" +
-		// String.valueOf(statementCall.ident.getText()));
-		// methodVisitor.visitInsn(DUP);
-		// methodVisitor.visitVarInsn(ALOAD, 0);
-		// methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName + "$"
-		// + String.valueOf(statementCall.ident.getText()), "<init>",
-		// "(L" + fullyQualifiedClassName + ";)V", false);
-		// methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName + "$"
-		// + String.valueOf(statementCall.ident.getText()), "run", "()V", false);
-		// methodVisitor.visitInsn(RETURN);
-		// methodVisitor.visitMaxs(3, 1);
-		// methodVisitor.visitEnd();
-
 		if ((fullyQualifiedClassName + currentProcLocation)
 				.equals(fullyQualifiedClassName + statementCall.ident.getDec().getProcLocation())) {
 			System.out.println("Proc declared and called in same");
@@ -333,7 +330,20 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+		Label expressionTrueBranch = new Label();
+		Label expressionFalseBranch = new Label();
+		Expression guardExp = statementWhile.expression;
+
+		mv.visitLabel(expressionTrueBranch);
+		guardExp.visit(this, arg);
+		mv.visitInsn(ICONST_1);
+		mv.visitJumpInsn(IF_ICMPLT, expressionFalseBranch);
+		statementWhile.statement.visit(this, arg);
+		mv.visitJumpInsn(GOTO, expressionTrueBranch);
+		mv.visitLabel(expressionFalseBranch);
+		return null;
+
 	}
 
 	@Override
@@ -426,6 +436,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				expressionBinary.e0.visit(this, arg);
 				expressionBinary.e1.visit(this, arg);
 				switch (op) {
+					case PLUS -> mv.visitInsn(IADD);
+					case TIMES -> mv.visitInsn(IMUL);
 					case EQ -> {
 						Label labelBoolEqFalseBr = new Label();
 						mv.visitJumpInsn(IF_ICMPNE, labelBoolEqFalseBr);
@@ -627,40 +639,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName + parentPath,
 					String.valueOf(ident.firstToken.getText()),
 					descriptor);
-			// for (int i = 0; i < ident.getNest() - ident.getDec().getNest(); i++) {
-			// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$" +
-			// String.valueOf(i),
-			// "L" + fullyQualifiedClassName + ";");
-			// }
 		} else {
 			mv.visitInsn(SWAP);
-			// if (ident.getNest() != ident.getDec().getNest()) {
-			// int diff = ident.getNest() - ident.getDec().getNest();
-			// for (int i = 0; i < diff; i++) {
-			// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$p", "this$" +
-			// String.valueOf(i),
-			// "L" + fullyQualifiedClassName + ";");
-			// }
-			// }
 			mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName + currentProcLocation,
 					String.valueOf(ident.firstToken.getText()),
 					descriptor);
-
-			// if (ident.getNest() > ident.getDec().getNest()) {
-			// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$0", "L" +
-			// fullyQualifiedClassName + ";");
-			// // mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
-			// // String.valueOf(ident.getText()), descriptor);
-			// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
-			// String.valueOf(ident.getText()), descriptor);
-			// } else {
-			// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
-			// String.valueOf(ident.getText()), descriptor);
-			// }
-
-			// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
-			// String.valueOf(ident.firstToken.getText()),
-			// descriptor);
 		}
 
 		return null;
