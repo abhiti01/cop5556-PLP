@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.platform.commons.util.StringUtils;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -43,8 +44,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	final String classDesc;
 	int visitingProcedure;
 	List<GenClass> genClassInstances = new ArrayList<GenClass>();
-
+	String currentProcLocation = "";
 	ClassWriter classWriter;
+
+	public String getParent(String currentProcLocString) {
+		// substring currentProcLocation till before last '$' and return
+		System.out.println("getting parent for " + currentProcLocString);
+		String parent = currentProcLocString.substring(0, currentProcLocString.lastIndexOf('$'));
+		// if length of string parent is 0, then return empty string
+		if (parent.length() == 0) {
+			return "";
+		}
+		return currentProcLocation.substring(0, currentProcLocation.lastIndexOf("$"));
+	}
 
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
@@ -138,48 +150,58 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		// throw new UnsupportedOperationException();
 		ClassWriter classWriterProc = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		// classWriterProc.visit(V18, ACC_PUBLIC | ACC_SUPER,
+		// fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
+		// null, "java/lang/Object",
+		// new String[] { "java/lang/Runnable" });
 		classWriterProc.visit(V18, ACC_PUBLIC | ACC_SUPER,
-				fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()), null, "java/lang/Object",
+				fullyQualifiedClassName + procDec.getProcLocation(), null, "java/lang/Object",
 				new String[] { "java/lang/Runnable" });
 		classWriterProc.visitSource(className + ".java", null);
-
-		// visitNestHost , visitInnerClass
 		classWriterProc.visitNestHost(fullyQualifiedClassName);
+		// classWriterProc.visitInnerClass(
+		// fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
+		// fullyQualifiedClassName,
+		// String.valueOf(procDec.ident.getText()), 0);
 		classWriterProc.visitInnerClass(
-				fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
-				fullyQualifiedClassName,
+				fullyQualifiedClassName + procDec.getProcLocation(),
+				fullyQualifiedClassName + procDec.getParentProcLocation(),
 				String.valueOf(procDec.ident.getText()), 0);
-		// procDec.block.visit(this, classWriterProc);
-		FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL | ACC_SYNTHETIC, "this$0",
-				"L" + fullyQualifiedClassName + ";", null, null);
+		// FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL |
+		// ACC_SYNTHETIC, "this$0",
+		// "L" + fullyQualifiedClassName + ";", null, null);
+		FieldVisitor fieldVisitorProc = classWriterProc.visitField(ACC_FINAL | ACC_SYNTHETIC,
+				"this$" + procDec.getNest(),
+				"L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";", null, null);
 		fieldVisitorProc.visitEnd();
+		// MethodVisitor methodVisitorProc = classWriterProc.visitMethod(0, "<init>",
+		// "(L" + fullyQualifiedClassName + ";)V", null, null);
 		MethodVisitor methodVisitorProc = classWriterProc.visitMethod(0, "<init>",
-				"(L" + fullyQualifiedClassName + ";)V", null, null);
+				"(L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";)V", null, null);
 		methodVisitorProc.visitCode();
 		methodVisitorProc.visitVarInsn(ALOAD, 0);
 		methodVisitorProc.visitVarInsn(ALOAD, 1);
+		// methodVisitorProc.visitFieldInsn(PUTFIELD,
+		// fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
+		// "this$0",
+		// "L" + fullyQualifiedClassName + ";");
 		methodVisitorProc.visitFieldInsn(PUTFIELD,
-				fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()), "this$0",
-				"L" + fullyQualifiedClassName + ";");
+				fullyQualifiedClassName + procDec.getProcLocation(), "this$" + procDec.getNest(),
+				"L" + fullyQualifiedClassName + procDec.getParentProcLocation() + ";");
 		methodVisitorProc.visitVarInsn(ALOAD, 0);
 		methodVisitorProc.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 		methodVisitorProc.visitInsn(RETURN);
 		methodVisitorProc.visitMaxs(2, 2);
 		methodVisitorProc.visitEnd();
 
-		// methodVisitorProc = classWriterProc.visitMethod(ACC_PUBLIC, "run", "()V",
-		// null, null);
-		// methodVisitorProc.visitCode();
+		String tempCurrentProcLocation = currentProcLocation;
+		currentProcLocation = procDec.getProcLocation();
 		procDec.block.visit(this, classWriterProc);
-		// methodVisitorProc.visitInsn(RETURN);
-		// methodVisitorProc.visitMaxs(2, 1);
-		// methodVisitorProc.visitEnd();
+		currentProcLocation = tempCurrentProcLocation;
 		classWriterProc.visitEnd();
-
 		genClassInstances
-				.add(new CodeGenUtils.GenClass(fullyQualifiedClassName + "$" + String.valueOf(procDec.ident.getText()),
+				.add(new CodeGenUtils.GenClass(fullyQualifiedClassName + procDec.getProcLocation(),
 						classWriterProc.toByteArray()));
 		System.out.println("GenClass List in visitProcedure: " + genClassInstances);
 		return null;
@@ -229,17 +251,46 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
 		// throw new UnsupportedOperationException();
 		MethodVisitor methodVisitor = (MethodVisitor) arg;
-		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName + "$" + String.valueOf(statementCall.ident.getText()));
-		methodVisitor.visitInsn(DUP);
-		methodVisitor.visitVarInsn(ALOAD, 0);
-		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName + "$"
-				+ String.valueOf(statementCall.ident.getText()), "<init>",
-				"(L" + fullyQualifiedClassName + ";)V", false);
-		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName + "$"
-				+ String.valueOf(statementCall.ident.getText()), "run", "()V", false);
-		methodVisitor.visitInsn(RETURN);
-		methodVisitor.visitMaxs(3, 1);
-		methodVisitor.visitEnd();
+		// methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName + "$" +
+		// String.valueOf(statementCall.ident.getText()));
+		// methodVisitor.visitInsn(DUP);
+		// methodVisitor.visitVarInsn(ALOAD, 0);
+		// methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName + "$"
+		// + String.valueOf(statementCall.ident.getText()), "<init>",
+		// "(L" + fullyQualifiedClassName + ";)V", false);
+		// methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName + "$"
+		// + String.valueOf(statementCall.ident.getText()), "run", "()V", false);
+		// methodVisitor.visitInsn(RETURN);
+		// methodVisitor.visitMaxs(3, 1);
+		// methodVisitor.visitEnd();
+
+		if ((fullyQualifiedClassName + currentProcLocation)
+				.equals(fullyQualifiedClassName + statementCall.ident.getDec().getProcLocation())) {
+			System.out.println("Proc declared and called in same");
+			methodVisitor.visitVarInsn(ALOAD, 0);
+			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName + currentProcLocation,
+					"run", "()V", false);
+		} else {
+			methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName + statementCall.ident.getDec().getProcLocation());
+			methodVisitor.visitInsn(DUP);
+			methodVisitor.visitVarInsn(ALOAD, 0);
+			String currentPath = currentProcLocation;
+			for (int i = statementCall.ident.getNest(); i > statementCall.ident.getDec().getNest(); i--) {
+				String parentPath = getParent(currentPath);
+				methodVisitor.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentPath,
+						"this$" + String.valueOf(i - 1),
+						"L" + fullyQualifiedClassName + parentPath + ";");
+				currentPath = parentPath;
+			}
+
+			methodVisitor.visitMethodInsn(INVOKESPECIAL,
+					fullyQualifiedClassName + statementCall.ident.getDec().getProcLocation(),
+					"<init>", "(L" + fullyQualifiedClassName + currentPath + ";)V", false);
+			methodVisitor.visitMethodInsn(INVOKEVIRTUAL,
+					fullyQualifiedClassName + statementCall.ident.getDec().getProcLocation(),
+					"run", "()V", false);
+
+		}
 		return null;
 	}
 
@@ -498,15 +549,20 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			// use nest level to go up the chain of this$n variables for non local variables
 			// and getfield
 			if (expressionIdent.getNest() != expressionIdent.getDec().getNest()) {
-				for (int i = 0; i < expressionIdent.getNest() - expressionIdent.getDec().getNest(); i++) {
-					mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$" + String.valueOf(i),
-							"L" + fullyQualifiedClassName + ";");
+				String currentPath = currentProcLocation;
+				for (int i = expressionIdent.getNest(); i > expressionIdent.getDec().getNest(); i--) {
+					String parentPath = getParent(currentPath);
+					mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentPath, "this$" + String.valueOf(i - 1),
+							"L" + fullyQualifiedClassName + parentPath + ";");
+					currentPath = parentPath;
 				}
-				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
+				System.out.println("visiting from expression ident: " + fullyQualifiedClassName + currentPath
+						+ String.valueOf(expressionIdent.firstToken.getText()));
+				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentPath,
 						String.valueOf(expressionIdent.firstToken.getText()),
 						descriptor);
 			} else {
-				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
+				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentProcLocation,
 						String.valueOf(expressionIdent.firstToken.getText()),
 						descriptor);
 			}
@@ -557,37 +613,56 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// use nest level to go up the chain of this$n vars for non local variables and
 		// putfield
 		if (ident.getNest() != ident.getDec().getNest()) {
-			for (int i = 0; i < ident.getNest() - ident.getDec().getNest(); i++) {
-				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$" + String.valueOf(i),
-						"L" + fullyQualifiedClassName + ";");
+			String currentPath = currentProcLocation;
+			String parentPath = "";
+			for (int i = ident.getNest(); i > ident.getDec().getNest(); i--) {
+				System.out.println("current path: " + currentPath);
+				parentPath = getParent(currentPath);
+				System.out.println("parent path: " + parentPath);
+				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentPath, "this$" + String.valueOf(i - 1),
+						"L" + fullyQualifiedClassName + parentPath + ";");
+				currentPath = parentPath;
 			}
+			mv.visitInsn(SWAP);
+			mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName + parentPath,
+					String.valueOf(ident.firstToken.getText()),
+					descriptor);
+			// for (int i = 0; i < ident.getNest() - ident.getDec().getNest(); i++) {
+			// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$" +
+			// String.valueOf(i),
+			// "L" + fullyQualifiedClassName + ";");
+			// }
+		} else {
+			mv.visitInsn(SWAP);
+			// if (ident.getNest() != ident.getDec().getNest()) {
+			// int diff = ident.getNest() - ident.getDec().getNest();
+			// for (int i = 0; i < diff; i++) {
+			// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$p", "this$" +
+			// String.valueOf(i),
+			// "L" + fullyQualifiedClassName + ";");
+			// }
+			// }
+			mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName + currentProcLocation,
+					String.valueOf(ident.firstToken.getText()),
+					descriptor);
+
+			// if (ident.getNest() > ident.getDec().getNest()) {
+			// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$0", "L" +
+			// fullyQualifiedClassName + ";");
+			// // mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
+			// // String.valueOf(ident.getText()), descriptor);
+			// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
+			// String.valueOf(ident.getText()), descriptor);
+			// } else {
+			// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
+			// String.valueOf(ident.getText()), descriptor);
+			// }
+
+			// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
+			// String.valueOf(ident.firstToken.getText()),
+			// descriptor);
 		}
-		mv.visitInsn(SWAP);
-		// if (ident.getNest() != ident.getDec().getNest()) {
-		// int diff = ident.getNest() - ident.getDec().getNest();
-		// for (int i = 0; i < diff; i++) {
-		// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName+"$p", "this$" +
-		// String.valueOf(i),
-		// "L" + fullyQualifiedClassName + ";");
-		// }
-		// }
-		mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName, String.valueOf(ident.firstToken.getText()), descriptor);
 
-		// if (ident.getNest() > ident.getDec().getNest()) {
-		// mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + "$p", "this$0", "L" +
-		// fullyQualifiedClassName + ";");
-		// // mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName,
-		// // String.valueOf(ident.getText()), descriptor);
-		// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
-		// String.valueOf(ident.getText()), descriptor);
-		// } else {
-		// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
-		// String.valueOf(ident.getText()), descriptor);
-		// }
-
-		// mv.visitFieldInsn(PUTFIELD, fullyQualifiedClassName,
-		// String.valueOf(ident.firstToken.getText()),
-		// descriptor);
 		return null;
 	}
 

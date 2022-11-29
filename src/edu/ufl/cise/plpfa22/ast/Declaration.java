@@ -10,6 +10,8 @@ import edu.ufl.cise.plpfa22.ast.Types.Type;
 public abstract class Declaration extends ASTNode {
 	int nest;
 	Type type;
+	String procLocation = "";
+	String parentProcLocation = "";
 
 	public void setNest(int nest) {
 		this.nest = nest;
@@ -31,4 +33,19 @@ public abstract class Declaration extends ASTNode {
 		this.type = type;
 	}
 
+	public String getProcLocation() {
+		return procLocation;
+	}
+
+	public void setProcLocation(String procLocation) {
+		this.procLocation = procLocation;
+	}
+
+	public String getParentProcLocation() {
+		return parentProcLocation;
+	}
+
+	public void setParentProcLocation(String parentProcLocation) {
+		this.parentProcLocation = parentProcLocation;
+	}
 }
