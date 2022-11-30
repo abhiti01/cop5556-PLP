@@ -793,6 +793,43 @@ public class CodeGenTests2 {
 		loadClassesAndRunMain(classes, className);
 	}
 
+	@DisplayName("mywhile")
+	@Test
+	public void mywhile(TestInfo testInfo) throws Exception {
+		String input = """
+				VAR a, ten;
+
+				BEGIN
+				a := 1;
+				ten := 0-1;
+				WHILE a < 10 DO BEGIN !a; a := a+1 END
+				END
+				.
+				""";
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+		loadClassesAndRunMain(classes, className);
+		String expected = """
+				1
+				2
+				3
+				4
+				5
+				6
+				7
+				8
+				9
+				""";
+		assertEquals(expected.replace("\n", "\r\n"), outContent.toString().replace("\n", "\r\n"));
+		System.setOut(originalOut);
+		System.setErr(originalErr);
+	}
+
 	@DisplayName("paramtest1")
 	@Test
 	public void paramtest1(TestInfo testInfo) throws Exception {
@@ -1001,6 +1038,159 @@ public class CodeGenTests2 {
 				34
 				55
 				printed first 10 fib series
+				""";
+		assertEquals(expected.replace("\n", "\r\n"), outContent.toString().replace("\n", "\r\n"));
+		System.setOut(originalOut);
+		System.setErr(originalErr);
+	}
+
+	@DisplayName("stringOps")
+	@Test
+	public void stringOps(TestInfo testInfo) throws Exception {
+		String input = """
+				BEGIN
+				! "cd"+("ab"+""+"qw");
+				! "cvd"+"avb"
+				END
+				.
+				""";
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+		loadClassesAndRunMain(classes, className);
+		String expected = """
+				cdabqw
+				cvdavb
+				""";
+		assertEquals(expected.replace("\n", "\r\n"), outContent.toString().replace("\n", "\r\n"));
+		System.setOut(originalOut);
+		System.setErr(originalErr);
+	}
+
+	@DisplayName("checkIf")
+	@Test
+	public void checkIf(TestInfo testInfo) throws Exception {
+		String input = """
+				BEGIN
+				IF 4 < 5 THEN
+				  BEGIN
+				     ! "ABC";
+				     IF FALSE THEN
+				        ! "QQQ"
+
+				  END
+				;
+				IF TRUE THEN
+				  ! "PPP"
+				;
+				! "qwe"
+				END
+				.
+				""";
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+		loadClassesAndRunMain(classes, className);
+		String expected = """
+				ABC
+				PPP
+				qwe
+				""";
+		assertEquals(expected.replace("\n", "\r\n"), outContent.toString().replace("\n", "\r\n"));
+		System.setOut(originalOut);
+		System.setErr(originalErr);
+	}
+
+	@DisplayName("proc1andahalf")
+	@Test
+	public void proc1andahalf(TestInfo testInfo) throws Exception {
+		String input = """
+				VAR a,b,c;
+				   PROCEDURE p;
+				      BEGIN
+				      a := 42;
+				      b := "hello";
+				      c := TRUE;
+				      !a;
+				      !b;
+				      !c;
+				      CALL q
+				      END;
+				   PROCEDURE q;
+				      BEGIN
+				         ! "in q";
+				      END;
+				BEGIN  //main
+				   CALL p ;
+				END
+				.
+				""";
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+		loadClassesAndRunMain(classes, className);
+		String expected = """
+				42
+				hello
+				true
+				in q
+				""";
+		assertEquals(expected.replace("\n", "\r\n"), outContent.toString().replace("\n", "\r\n"));
+		System.setOut(originalOut);
+		System.setErr(originalErr);
+	}
+
+	@DisplayName("proc1and3quarters")
+	@Test
+	public void proc1and3quarters(TestInfo testInfo) throws Exception {
+		String input = """
+				VAR a,b,c;
+				   PROCEDURE p;
+				      BEGIN
+				                      a := 42;
+				                      b := "hello";
+				                      !a;
+				                      !b;
+				                      CALL q
+				      END;
+				   PROCEDURE q;
+				      BEGIN
+				         ! "in q";
+				      END;
+				BEGIN  //main
+				   a := 1;
+				   ! "in main calling p, a=1";
+				   CALL p ;
+				   ! "terminating back in main"
+				END
+				.
+				""";
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
+		Object[] args = new Object[1];
+		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+		System.setErr(new PrintStream(errContent));
+		loadClassesAndRunMain(classes, className);
+		String expected = """
+				in main calling p, a=1
+				42
+				hello
+				in q
+				terminating back in main
 				""";
 		assertEquals(expected.replace("\n", "\r\n"), outContent.toString().replace("\n", "\r\n"));
 		System.setOut(originalOut);
