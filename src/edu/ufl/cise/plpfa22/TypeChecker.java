@@ -114,7 +114,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
         int count = 0;
-        
+
         if (statementAssign.expression != null) {
             if ((statementAssign.ident.getDec() instanceof ConstDec
                     || statementAssign.ident.getDec() instanceof ProcDec) && (Boolean) arg) {
@@ -128,7 +128,8 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             } else if (rhsType == null && statementAssign.ident.getDec().getType() != null) {
                 statementAssign.expression.setType(statementAssign.ident.getDec().getType());
 
-            } else if(statementAssign.ident.getDec().getType()!=null && rhsType!=null && statementAssign.ident.getDec().getType() != rhsType) {
+            } else if (statementAssign.ident.getDec().getType() != null && rhsType != null
+                    && statementAssign.ident.getDec().getType() != rhsType) {
                 throw new TypeCheckException("type mismatch");
             }
 
@@ -159,7 +160,8 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
         visitIdent(statementInput.ident, arg);
         if ((statementInput.ident.getDec().getType() == Type.PROCEDURE
-                || statementInput.ident.getDec().getType() == null || statementInput.ident.getDec() instanceof ConstDec) && (Boolean) arg) {
+                || statementInput.ident.getDec().getType() == null || statementInput.ident.getDec() instanceof ConstDec)
+                && (Boolean) arg) {
             throw new TypeCheckException("Invalid type for StatementInput, should be Num, String or Bool");
         }
         return null;
@@ -236,7 +238,7 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
         int count = 0;
         switch (expressionBinary.op.getKind()) {
             case PLUS: {
-                
+
                 count += (Integer) visitExpression(expressionBinary.e0, arg);
                 count += (Integer) visitExpression(expressionBinary.e1, arg);
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
@@ -252,40 +254,41 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     ++count;
                 } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
-                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
                     }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
-                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
                     }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
-                } 
-                else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null
+                        && expressionBinary.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.getType());
-                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
                     }
                     ++count;
                     expressionBinary.e1.setType(expressionBinary.getType());
-                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
                     }
                     ++count;
-                }
-                else {
+                } else {
                     if ((Boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary PLUS, unequal types of e0 and e1 at "
                                         + String.valueOf(expressionBinary.e0.getFirstToken().getText()) + " "
                                         + String.valueOf(expressionBinary.e1.getFirstToken().getText()));
                 }
-                System.out.println("IN CASE PLUS, SET TYPES OF EXPR0 " +String.valueOf(expressionBinary.e0.getFirstToken().getText())+" "+ expressionBinary.e0.getType() + "AND OF E1 "
-                        + expressionBinary.e1.getType() +" " +String.valueOf(expressionBinary.e1.getFirstToken().getText()));
             }
                 break;
             case MINUS:
@@ -296,35 +299,37 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                 if (expressionBinary.e0.getType() == Type.NUMBER && expressionBinary.e1.getType() == Type.NUMBER) {
                     expressionBinary.setType(Type.NUMBER);
                     ++count;
-                }
-                else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
-                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
                     }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
-                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
                     }
                     expressionBinary.setType(expressionBinary.e0.getType());
                     ++count;
-                } 
-                else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null
+                        && expressionBinary.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.getType());
-                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
                     }
                     ++count;
                     expressionBinary.e1.setType(expressionBinary.getType());
-                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
                     }
                     ++count;
-                }
-                else {
+                } else {
                     if ((Boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary MINUS DIV MOD, unequal types of e0 and e1 at "
@@ -343,34 +348,37 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                         && expressionBinary.e1.getType() == Type.BOOLEAN) {
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
-                }
-                else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
-                    if (expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null) {
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
                         ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
                     }
                     expressionBinary.setType(expressionBinary.e1.getType());
                     ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
-                    if (expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null) {
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
                         ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
                     }
                     expressionBinary.setType(expressionBinary.e0.getType());
-                    ++count;                } 
-                else if(expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null && expressionBinary.getType()!=null){
+                    ++count;
+                } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() == null
+                        && expressionBinary.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.getType());
-                    if(expressionBinary.e0 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e0.getType());
                     }
                     ++count;
                     expressionBinary.e1.setType(expressionBinary.getType());
-                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e1.getType());
                     }
                     ++count;
-                }
-                else {
+                } else {
                     if ((Boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary TIMES, unequal types of e0 and e1 at "
@@ -397,20 +405,21 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
                     ++count;
                 } else if (expressionBinary.e0.getType() == null && expressionBinary.e1.getType() != null) {
                     expressionBinary.e0.setType(expressionBinary.e1.getType());
-                    if(expressionBinary.e0 instanceof ExpressionIdent&& ((ExpressionIdent)expressionBinary.e0).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
+                    if (expressionBinary.e0 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e0).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e0).getDec().setType(expressionBinary.e1.getType());
                     }
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
                 } else if (expressionBinary.e0.getType() != null && expressionBinary.e1.getType() == null) {
                     expressionBinary.e1.setType(expressionBinary.e0.getType());
-                    if(expressionBinary.e1 instanceof ExpressionIdent && ((ExpressionIdent)expressionBinary.e1).getDec().getType() == null){
-                        ((ExpressionIdent)expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
+                    if (expressionBinary.e1 instanceof ExpressionIdent
+                            && ((ExpressionIdent) expressionBinary.e1).getDec().getType() == null) {
+                        ((ExpressionIdent) expressionBinary.e1).getDec().setType(expressionBinary.e0.getType());
                     }
                     expressionBinary.setType(Type.BOOLEAN);
                     ++count;
-                } 
-                else {
+                } else {
                     if ((boolean) arg)
                         throw new TypeCheckException(
                                 "Invalid type for ExpressionBinary EQ NEQ, unequal types of e0 and e1 at "
@@ -434,7 +443,8 @@ public class TypeChecker implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             expressionIdent.setType(expressionIdent.getDec().getType());
             ++count;
         }
-        if ((boolean) arg && expressionIdent.getType() != expressionIdent.getDec().getType() && expressionIdent.getDec().getType() != null) {
+        if ((boolean) arg && expressionIdent.getType() != expressionIdent.getDec().getType()
+                && expressionIdent.getDec().getType() != null) {
             throw new TypeCheckException("BYE");
         }
         return count;

@@ -64,7 +64,6 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     public Object visitProgram(Program program, Object arg) throws PLPException {
         symboltable.enterScope();
         if (program != null) {
-            // visitBlock(program.block, "prog");
             visitBlock(program.block, arg);
         }
         symboltable.exitScope();
@@ -225,16 +224,10 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
     @Override
     public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
         if (arg == "one") {
-            // System.out.println("Visiting Procedure: " +
-            // String.valueOf(procDec.ident.getText()));
-            // System.out.println("Proc path ASTVisitor is :" + procDec.getProcLocation());
             visitIdent(new Ident(procDec.ident), procDec);
             procDec.setNest(nestLevel);
             procDec.setParentProcLocation(currProcLocation);
             procDec.setProcLocation(currProcLocation + "$" + String.valueOf(procDec.ident.getText()));
-            System.out.println("Visiting Proc: " + String.valueOf(procDec.ident.getText()));
-            System.out.println("Proc path ASTVisitor is :" + procDec.getProcLocation());
-            System.out.println("Proc parent path ASTVisitor is :" + procDec.getParentProcLocation());
         } else {
             symboltable.enterScope();
             String tempProcLocation = currProcLocation;
@@ -281,8 +274,7 @@ public class ASTVisitorNew implements edu.ufl.cise.plpfa22.ast.ASTVisitor {
             ident.setNest(nestLevel);
             ident.setDec((Declaration) arg);
             symboltable.pushDeclaration(tempToken.getString(), ident.getDec());
-            // symboltable.pushDeclaration(tempToken.getString(),
-            // ident.getDec(),symboltable.getScopeId());
+
         }
 
         return null;

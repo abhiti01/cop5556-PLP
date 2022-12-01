@@ -50,7 +50,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	public String getParent(String currentProcLocString) {
 		// substring currentProcLocation till before last '$' and return
-		System.out.println("getting parent for " + currentProcLocString);
 		String parent = currentProcLocString.substring(0, currentProcLocString.lastIndexOf('$'));
 		// if length of string parent is 0, then return empty string
 		if (parent.length() == 0) {
@@ -111,16 +110,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitMaxs(2, 1);
 		methodVisitor.visitEnd();
 		program.block.visit(this, classWriter);
-
-		// visit the block, passing it the methodVisitor
-		// program.block.visit(this, methodVisitor);
-		// finish up the class
 		classWriter.visitEnd();
 
 		genClassInstances.add(0, new CodeGenUtils.GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
-		System.out.println("GenClass List in visitProgram: " + genClassInstances);
-		// return the bytes making up the classfile
-		// return classWriter.toByteArray();
+
 		return genClassInstances;
 	}
 
@@ -208,7 +201,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 							procDec.getProcLocation(),
 							classWriterProc.toByteArray()));
 		}
-		System.out.println("GenClass List in visitProcedure: " + genClassInstances);
 		return null;
 	}
 
@@ -244,8 +236,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
 		// throw new UnsupportedOperationException();
 		ClassWriter classWriter = (ClassWriter) arg;
-		System.out.println("In visitVarDec with ident: " + String.valueOf(varDec.ident.getText()) + " and type: "
-				+ varDec.getType());
 		Type varDecType = varDec.getType();
 		if (varDecType != null) {
 			String ident = String.valueOf(varDec.ident.getText());
@@ -259,11 +249,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		// throw new UnsupportedOperationException();
 		MethodVisitor methodVisitor = (MethodVisitor) arg;
 		if ((fullyQualifiedClassName + currentProcLocation)
 				.equals(fullyQualifiedClassName + statementCall.ident.getDec().getProcLocation())) {
-			System.out.println("Proc declared and called in same");
 			methodVisitor.visitVarInsn(ALOAD, 0);
 			methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName + currentProcLocation,
 					"run", "()V", false);
@@ -568,8 +556,6 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 							"L" + fullyQualifiedClassName + parentPath + ";");
 					currentPath = parentPath;
 				}
-				System.out.println("visiting from expression ident: " + fullyQualifiedClassName + currentPath
-						+ String.valueOf(expressionIdent.firstToken.getText()));
 				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentPath,
 						String.valueOf(expressionIdent.firstToken.getText()),
 						descriptor);
@@ -611,13 +597,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitIdent(Ident ident, Object arg) throws PLPException {
-		// throw new UnsupportedOperationException();
-		// add .this$n to descriptorfor non local variables
 		MethodVisitor mv = (MethodVisitor) arg;
 		mv.visitVarInsn(ALOAD, 0);
-
-		System.out.println("Nest level of ident: " + String.valueOf(ident.getNest()));
-		System.out.println("Nest level of ident's dec: " + String.valueOf(ident.getDec().getNest()));
 
 		String descriptor = (ident.getDec().getType().equals(Type.NUMBER) ? "I"
 				: (ident.getDec().getType().equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
@@ -628,9 +609,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			String currentPath = currentProcLocation;
 			String parentPath = "";
 			for (int i = ident.getNest(); i > ident.getDec().getNest(); i--) {
-				System.out.println("current path: " + currentPath);
 				parentPath = getParent(currentPath);
-				System.out.println("parent path: " + parentPath);
 				mv.visitFieldInsn(GETFIELD, fullyQualifiedClassName + currentPath, "this$" + String.valueOf(i - 1),
 						"L" + fullyQualifiedClassName + parentPath + ";");
 				currentPath = parentPath;
