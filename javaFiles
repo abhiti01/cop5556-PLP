@@ -1,5 +1,6 @@
 ./src/edu/ufl/cise/plpfa22/ASTVisitorNew.java
 ./src/edu/ufl/cise/plpfa22/CodeGenTests.java
+./src/edu/ufl/cise/plpfa22/CodeGenTests2.java
 ./src/edu/ufl/cise/plpfa22/CodeGenUtils.java
 ./src/edu/ufl/cise/plpfa22/CodeGenVisitor.java
 ./src/edu/ufl/cise/plpfa22/CompilerComponentFactory.java
